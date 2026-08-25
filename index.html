@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- === Core Meta === -->
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VoltraBloom — Hybrid Energy Harvesting System</title>
+  <meta name="description" content="VoltraBloom is a biomimetic hybrid energy harvesting system combining solar petals, vertical-axis wind turbines, and soil microbial fuel cells for continuous renewable power generation.">
+  <meta name="author" content="SMA Negeri Cahaya Madani Banten Boarding School">
+  <meta name="theme-color" content="#FAF6EE">
+
+  <!-- === Open Graph / Social === -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="VoltraBloom — Hybrid Energy Harvesting System">
+  <meta property="og:description" content="A biomimetic hybrid renewable energy system combining solar, wind, and bioelectric SMFC technology for continuous power generation.">
+  <meta property="og:url" content="https://voltrabloom.com">
+  <meta property="og:site_name" content="VoltraBloom">
+
+  <!-- === Twitter Card === -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="VoltraBloom — Hybrid Energy Harvesting System">
+  <meta name="twitter:description" content="A biomimetic hybrid renewable energy system combining solar, wind, and bioelectric SMFC technology.">
+
+  <!-- === Favicon (inline SVG) === -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23E2A03F'/%3E%3Cpath d='M16 8c-1.5 2.5-5 3-5 6s2 4 5 4 5-1 5-4-3.5-3.5-5-6z' fill='white' opacity='.9'/%3E%3Cpath d='M16 18v6' stroke='white' stroke-width='1.5' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='14' r='1.5' fill='%23E2A03F'/%3E%3C/svg%3E">
+
+  <!-- === Fonts === -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- === Stylesheet === -->
+  <link rel="stylesheet" href="style.css">
+
+  <!-- === GSAP (global scripts — loaded before ES module) === -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.7/gsap.min.js" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.7/ScrollTrigger.min.js" defer></script>
+
+  <!-- === Three.js Import Map === -->
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://esm.sh/three@0.167.0"
+    }
+  }
+  </script>
+
+  <!-- === Main App Module (deferred until DOM ready) === -->
+  <link rel="modulepreload" href="main.js">
+</head>
+<body>
+
+  <!-- ===== PRELOADER ===== -->
+  <div id="preloader" aria-live="polite" aria-label="Loading VoltraBloom">
+    <div class="preloader-logo">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 5a3 3 0 1 1 3 3m-3-3a3 3 0 1 0-3 3m3-3v1M9 8a3 3 0 1 0 3 3M9 8h1m5 0a3 3 0 1 1-3 3m3-3h-1m-2 3v-1"/>
+        <circle cx="12" cy="8" r="2"/>
+        <path d="M12 10v12"/>
+        <path d="M12 22c4.2 0 7-1.667 7-5-4.2 0-7 1.667-7 5Z"/>
+        <path d="M12 22c-4.2 0-7-1.667-7-5 4.2 0 7 1.667 7 5Z"/>
+      </svg>
+    </div>
+    <div class="preloader-bar">
+      <div class="preloader-fill"></div>
+    </div>
+    <p class="preloader-text">Loading experience</p>
+  </div>
+
+  <!-- ===== GRID OVERLAY ===== -->
+  <div class="grid-matrix" aria-hidden="true"></div>
+
+  <!-- ===== 3D CANVAS ===== -->
+  <canvas id="c3d" role="img" aria-label="Interactive 3D model of the VoltraBloom hybrid energy harvesting system"></canvas>
+
+  <!-- ===== CONTENT ===== -->
+  <div class="content-layer">
+
+    <!-- ===== NAVIGATION ===== -->
+    <nav class="nav" aria-label="Main navigation">
+      <div class="nav-brand">
+        <div class="nav-brand-icon" aria-hidden="true">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 5a3 3 0 1 1 3 3m-3-3a3 3 0 1 0-3 3m3-3v1M9 8a3 3 0 1 0 3 3M9 8h1m5 0a3 3 0 1 1-3 3m3-3h-1m-2 3v-1"/>
+            <circle cx="12" cy="8" r="2"/>
+            <path d="M12 10v12"/>
+            <path d="M12 22c4.2 0 7-1.667 7-5-4.2 0-7 1.667-7 5Z"/>
+            <path d="M12 22c-4.2 0-7-1.667-7-5 4.2 0 7 1.667 7 5Z"/>
+          </svg>
+        </div>
+        <span class="nav-brand-name">VoltraBloom</span>
+      </div>
+
+      <div class="nav-actions">
+        <!-- Poster PDF -->
+        <a href="PAPER_VOLTRA.pdf" target="_blank" rel="noopener noreferrer"
+           class="interactive-el nav-btn nav-btn--outline" aria-label="View research poster PDF">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/>
+            <path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 13H8"/><path d="M16 17H8"/><path d="M16 13h-2"/>
+          </svg>
+          Poster
+        </a>
+
+        <!-- Live Data -->
+        <a href="https://thingsboard.io" target="_blank" rel="noopener noreferrer"
+           class="interactive-el nav-btn nav-btn--solid" aria-label="View live telemetry data">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.25.25 0 0 1-.48 0L9.24 2.18a.25.25 0 0 0-.48 0l-2.35 8.36A2 2 0 0 1 4.49 12H2"/>
+          </svg>
+          Live Data
+          <span class="live-indicator">
+            <span class="live-ping"></span>
+            <span class="live-dot"></span>
+          </span>
+        </a>
+      </div>
+    </nav>
+
+    <!-- ===== SLIDE 1: HERO ===== -->
+    <section id="slide-1" class="section section--hero">
+      <div class="slide-content">
+        <div class="badge">
+          <span class="badge-dot"></span>
+          Hybrid Energy Harvesting System
+        </div>
+        <h1 class="heading-hero">
+          Hello<br>I Am<br>VoltraBloom :)
+        </h1>
+        <p class="body-text body-text--hero">
+          Hybrid energy system
+        </p>
+      </div>
+      <div class="scroll-hint" aria-hidden="true">
+        <span>Scroll to explore</span>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="m6 9 6 6 6-6"/>
+        </svg>
+      </div>
+    </section>
+
+    <!-- ===== SLIDE 2: SOLAR MECHANISM ===== -->
+    <section id="slide-2" class="section section--left">
+      <div class="slide-content">
+        <p class="step-label">Step 01 — Solar</p>
+        <h2 class="heading-section">How it works</h2>
+        <p class="body-text">
+          This intelligent flower-shaped petal system is integrated with highly efficient monocrystalline solar panels.
+          The biomimetic flower structure optimizes solar radiation capture from various ambient angles to maximize
+          electricity generation throughout peak daylight hours.
+        </p>
+      </div>
+    </section>
+
+    <!-- ===== SLIDE 3: WIND ENERGY ===== -->
+    <section id="slide-3" class="section section--right">
+      <div class="slide-content text-right">
+        <p class="step-label">Step 02 — Wind</p>
+        <h2 class="heading-section">Wind Energy Integration</h2>
+        <p class="body-text">
+          The micro vertical-axis wind turbine (VAWT) modules are positioned over airflow channels to harvest
+          kinetic energy from omnidirectional wind currents. This turbine acts as a dependable backup power supply,
+          ensuring continuous electrical output even during overcast conditions or nighttime.
+        </p>
+      </div>
+    </section>
+
+    <!-- ===== SLIDE 4: BIOELECTRIC SMFC ===== -->
+    <section id="slide-4" class="section section--left">
+      <div class="slide-content">
+        <p class="step-label">Step 03 — Bioelectric</p>
+        <h2 class="heading-section">Bioelectric SMFC</h2>
+        <p class="body-text">
+          Within the fenced sub-compartment, VoltraBloom incorporates Soil Microbial Fuel Cell (SMFC) technology
+          distributed across 5 organic soil pots. The system captures metabolic electrons released by indigenous
+          subterranean microorganisms to generate stable bioelectricity 24/7.
+        </p>
+      </div>
+    </section>
+
+    <!-- ===== SLIDE 5: GALLERY & CONCLUSION ===== -->
+    <section id="slide-5" class="section section--gallery">
+      <div class="slide-content" style="width:100%;max-width:64rem">
+        <p class="step-label text-center">Development Gallery</p>
+        <h2 class="heading-gallery">Building VoltraBloom</h2>
+
+        <!-- 3-column image grid -->
+        <div class="gallery-grid">
+          <div class="gallery-item interactive-el gallery-item--standard">
+            <img src="gallery/cad_model.png"
+                 alt="3D CAD model of VoltraBloom showing the enclosure and petal system design"
+                 width="800" height="600" loading="lazy">
+          </div>
+          <div class="gallery-item interactive-el gallery-item--standard">
+            <img src="gallery/prototype_assembly.jpeg"
+                 alt="Team collaborating on the VoltraBloom prototype assembly"
+                 width="800" height="600" loading="lazy">
+          </div>
+          <div class="gallery-item interactive-el gallery-item--standard">
+            <img src="gallery/physical_fabrication.jpeg"
+                 alt="Physical fabrication of VoltraBloom enclosure and components"
+                 width="800" height="600" loading="lazy">
+          </div>
+        </div>
+
+        <!-- Wide 4th image -->
+        <div class="gallery-item interactive-el gallery-item--wide" style="max-width:64rem;width:100%">
+          <img src="gallery/wiring_circuit.jpeg"
+               alt="Electronics wiring and circuit integration for the VoltraBloom system"
+               width="1680" height="640" loading="lazy">
+        </div>
+
+        <h2 class="heading-closing">Thanks for visiting</h2>
+        <p class="body-text body-text--hero text-center" style="font-size:0.75rem;letter-spacing:0.03em">
+          VoltraBloom — Hybrid Renewable Emergency Power System
+        </p>
+      </div>
+    </section>
+
+    <!-- ===== FOOTER ===== -->
+    <footer class="footer">
+      <p>&copy; 2025 VoltraBloom — SMA Negeri Cahaya Madani Banten Boarding School</p>
+    </footer>
+
+  </div>
+
+  <!-- ===== APP ENTRY ===== -->
+  <!-- Wait for GSAP globals to be available, then load Three.js module -->
+  <script>
+    function bootApp() {
+      if (window.gsap && window.ScrollTrigger) {
+        const s = document.createElement('script');
+        s.type = 'module';
+        s.src = 'main.js';
+        document.body.appendChild(s);
+      } else {
+        setTimeout(bootApp, 50);
+      }
+    }
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', bootApp);
+    } else {
+      bootApp();
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,9 @@
+# System Files
+.DS_Store
+Thumbs.db
+
+# Local development
+node_modules/
+.vscode/
+.idea/
+*.log
