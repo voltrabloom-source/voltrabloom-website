@@ -11,12 +11,21 @@
 /Project_Voltrabloom/
 /tester_pertama/
 
+# System Files
+.DS_Store
+Thumbs.db
+
 # OS / IDE
 desktop.ini
-Thumbs.db
-.DS_Store
 *.code-workspace
 .vscode/
+.idea/
+*.log
+
+# Local development / dependencies
+node_modules/
+
+# Build artifacts
 *.o
 *.elf
 *.bin

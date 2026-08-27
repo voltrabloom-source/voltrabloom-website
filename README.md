@@ -4,16 +4,21 @@
 
 ---
 
-## 📁 Clean Project Structure
+## 📁 Project Structure
 
 ```text
 VOLTRA/
-├── README.md                               ← 📖 Master documentation & hardware wiring guide
+├── README.md                               ← Master documentation & hardware wiring guide
 │
-├── 🌐 Web & 3D Applications (Open directly in any browser)
-│   ├── index.html                          ← ⭐ Live 3D showcase & real-time telemetry dashboard (Chart.js + Three.js)
-│   ├── viewer_3d.html                      ← Standalone 3D prototype viewer (alias: p.html)
-│   └── box_akrilik_designer.html           ← 3D acrylic enclosure CAD designer
+├── 🌐 Web & 3D Applications
+│   ├── index.html                          ← Live 3D showcase & real-time telemetry dashboard (Chart.js + Three.js + Supabase)
+│   ├── viewer_3d.html                      ← Standalone 3D prototype viewer
+│   ├── box_akrilik_designer.html           ← 3D acrylic enclosure CAD designer
+│   ├── main.js                             ← Production website ES module (Three.js 0.167 + GSAP scroll)
+│   ├── style.css                           ← Hand-written CSS design system (replaces Tailwind CDN)
+│   ├── vercel.json                         ← Vercel deployment config
+│   ├── gallery/                            ← Optimized gallery assets (cad_model, fabrication, wiring)
+│   └── logo/                               ← Optimized logos
 │
 ├── ⚡ firmware/                            ← ESP32 Firmware Source Code
 │   ├── Project_Voltrabloom_Unified/        ← ⭐ RECOMMENDED: FreeRTOS Dual-Core Firmware v3.0
@@ -22,12 +27,8 @@ VOLTRA/
 │   │   ├── supabase_schema.sql             ← PostgreSQL table definitions & hourly aggregation
 │   │   └── .clangd
 │   ├── Project_Voltrabloom/                ← Standalone WiFi AP + Local Web Server
-│   │   └── Project_Voltrabloom.ino
 │   ├── Project_Voltrabloom_Supabase/       ← Cloud IoT logger (Supabase telemetry)
-│   │   ├── Project_Voltrabloom.ino
-│   │   └── SupabaseLogger.h
 │   └── tester_pertama/                     ← 🧪 Hardware & Sensor Calibration Firmware (No WiFi)
-│       └── tester_pertama.ino
 │
 ├── 📐 3d_models/                           ← 3D CAD, STL, GLB & SVG Model Assets
 │   ├── Frantic_Kasi.glb / .stl / .svg      ← Optimized 3D model iterations
@@ -36,29 +37,18 @@ VOLTRA/
 │
 ├── 📑 documents/                           ← Research & Engineering Documentation
 │   ├── papers/                             ← Scientific papers & research publications
-│   │   ├── PAPER_VOLTRA.pdf
-│   │   ├── PAPER_VOLTRA.docx
-│   │   └── VoltraBloom_Paper_Updated.docx
 │   ├── proposals/                          ← Project proposals & compliance forms
-│   │   ├── Proposal_voltra.docx
-│   │   └── 029_IZIN_DEVICE.docx
 │   ├── schemas/                            ← System wiring & hybrid electrical schemas
-│   │   ├── supabase_telemetry_schema.sql   ← Master SQL with hourly aggregation & retention
-│   │   ├── system_hybrid_schema.pdf
-│   │   └── ref_web.pdf
+│   │   └── supabase_telemetry_schema.sql   ← Master SQL with hourly aggregation & retention
 │   └── scripts/                            ← Documentation scripts & presentation drafts
 │
 ├── 🎨 media/                               ← Visual Assets, Graphics & Photos
-│   ├── posters/                            ← Project presentation posters (.png, .svg)
-│   ├── logos/                              ← Official VoltraBloom brand logos (.webp)
-│   ├── photos/                             ← Hardware prototypes & test bench photos
-│   └── design_projects/                    ← Raw graphic design project files (.ipv)
-│
-├── 🛠️ tools/                               ← Utilities & Software Tools
-│   └── Arduino IDE/                        ← Portable Arduino IDE environment
-│
-└── 🗄️ _archive_raw_downloads/               ← Safe backup archive of original download packages
+│   ├── posters/, logos/, photos/, design_projects/
+│   └── screenshots/
+└── 🛠️ tools/                               ← Portable Arduino IDE (gitignored, ~500MB)
 ```
+
+> **Two website builds:** `index.html` (this repo's engineering dashboard) opens directly in browser with Tailwind CDN + Chart.js + Supabase. `main.js` + `style.css` + `vercel.json` is the production-optimized build from `voltrabloom-website` (ES modules via import map, no CDN runtime) — deploy that via Vercel for best performance.
 
 ---
 
@@ -75,18 +65,15 @@ flowchart LR
         LCD["20x4 I2C LCD Refresh (2Hz)"]
         ADC --> Filter --> Coulomb --> LCD
     end
-
     subgraph Mutex["🔒 FreeRTOS Mutex"]
         SharedState["Thread-Safe Telemetry State"]
     end
-
     subgraph Core0["🌐 CPU Core 0 (Network Core - Background)"]
         WiFiManager["Wi-Fi Auto-Reconnect / AP Mode"]
         REST["HTTP REST API (/api/telemetry)"]
         Supabase["HTTPS Cloud Upload (5s Interval)"]
         WiFiManager --> REST --> Supabase
     end
-
     Core1 <==> Mutex <==> Core0
 ```
 
@@ -126,12 +113,59 @@ Install via **Arduino IDE → Sketch → Include Library → Manage Libraries**:
 
 ## ☁️ Supabase Cloud Database & Automated Hourly Aggregation
 
-Execute [`documents/schemas/supabase_telemetry_schema.sql`](file:///c:/Users/Arfi/Downloads/VOLTRA/documents/schemas/supabase_telemetry_schema.sql) in your Supabase SQL Editor to provision:
+Execute [`documents/schemas/supabase_telemetry_schema.sql`](documents/schemas/supabase_telemetry_schema.sql) in your Supabase SQL Editor to provision:
 
 1. **`telemetry` table**: Fast index on `created_at DESC` for live 5-second streaming.
 2. **`telemetry_hourly` table**: Automated hourly rollup for long-term historical analytics.
 3. **`aggregate_telemetry_hourly()`**: SQL function computing average voltages, peak generation, and total Watt-hours harvested.
 4. **`cleanup_old_raw_telemetry(days)`**: Retention policy pruning raw 5s rows older than 30 days while preserving lifetime hourly summaries.
+
+Current project (reused): `https://qucbixztkrneifeerkaa.supabase.co` — anon key in `firmware/Project_Voltrabloom_Unified/Project_Voltrabloom_Unified.ino:36-37` and `index.html:792-793`. Update both when creating new Supabase project.
+
+---
+
+## 🌐 Website — Production Build (voltrabloom-website)
+
+This repo merges the engineering `VOLTRA` codebase with the optimized `voltrabloom-website` production build.
+
+**Tech Stack:**
+- **Three.js 0.167** (ES Module via import map) — 3D product visualization
+- **GSAP + ScrollTrigger** — Scroll-driven camera animations
+- **Vanilla CSS** (`style.css` ~3KB) — No Tailwind runtime (hand-written design system)
+- **Inline SVG icons** — No icon library dependency
+- **Vercel** — Deploy via `vercel.json`
+
+**Local Development (production build):**
+```bash
+# ES modules require HTTP server (not file://)
+python3 -m http.server 8080
+npx serve .
+# VS Code Live Server also works
+```
+Engineering dashboard (`index.html` with Tailwind CDN + Supabase) still opens directly as file — no server needed but requires internet for CDNs.
+
+**Deployment:**
+```bash
+npx vercel --prod
+# or: GitHub Pages (Settings → Pages → Source: main), Netlify drag-drop
+```
+
+**Production Checklist:**
+- [ ] Replace gallery image URLs if using expiring CDN auth tokens (now `gallery/` local)
+- [ ] Add `PAPER_VOLTRA.pdf` to project root if needed
+- [ ] Update `og:url` in `index.html` with actual domain
+- [ ] Update Live Data button to your Supabase dashboard URL
+
+**Performance Optimizations (from website build):**
+- Glass materials use `MeshStandardMaterial` with opacity instead of costly `transmission` (8× faster)
+- Shadow map 1024×1024 with manual updates only on camera movement
+- Render loop pauses when canvas off-screen
+- Pixel ratio capped at 1.5 for mobile
+- Debounced resize handler
+
+**Accessibility:**
+- `prefers-reduced-motion` respected
+- Semantic HTML, ARIA labels on 3D canvas, keyboard-navigable
 
 ---
 
