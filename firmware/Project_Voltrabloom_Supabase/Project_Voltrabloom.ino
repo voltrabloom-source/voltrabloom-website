@@ -20,7 +20,7 @@ const char* SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOi
 
 SupabaseLogger supabase;
 
-const int pinSolar = 32, pinWind = 35, pinSoil = 34, pinOutput = 33, pinAmpsIn = 39, pinAmpsOut = 27;
+const int pinSolar = 32, pinWind = 35, pinSoil = 34, pinOutput = 33, pinAmpsIn = 39, pinAmpsOut = 36;
 
 // AKURAT: Batas kapasitas diatur tepat ke 2.6 Ah (2600 mAh) sesuai baterai seri Anda
 const float VREF = 3.3, MAX_ADC = 4095.0, BATT_CAPACITY_AH = 2.6; 
@@ -31,7 +31,7 @@ int rIdx = 0;
 long tSol = 0, tWnd = 0, tSli = 0, tOut = 0, tAIn = 0, tAOt = 0;
 
 float vDisplaySolar, vDisplayWind, vDisplaySoil, vDisplayOutput, arusMasukA, arusKeluarA;
-float bateraiIsiAh = 0.0, persenBaterai = 0.0; // Memulai kalkulasi aman dari 0%
+float bateraiIsiAh = 1.3, persenBaterai = 50.0; // Start at 50% (midpoint assumption)
 unsigned long waktuLamaMilli = 0;
 
 void printFormat(float value) {
@@ -49,7 +49,7 @@ void setup() {
   lcd.setCursor(0, 0); lcd.print("       Hello        ");
   lcd.setCursor(0, 1); lcd.print("       I am         ");
   lcd.setCursor(0, 2); lcd.print("  VOLTRABLOOM :)    ");
-  delay(7000);
+  delay(2000);
   lcd.clear();
 
   // Inisialisasi awal seluruh memori filter dengan nilai 0
@@ -60,7 +60,20 @@ void setup() {
 
   lcd.setCursor(0, 0); lcd.print("Connecting WiFi ");
   WiFi.begin(ssid, password);
-  while (WiFi.status() != WL_CONNECTED) { delay(500); lcd.print("."); }
+
+  unsigned long wifiStart = millis();
+  while (WiFi.status() != WL_CONNECTED && millis() - wifiStart < 8000) {
+    delay(500);
+    lcd.print(".");
+  }
+
+  if (WiFi.status() != WL_CONNECTED) {
+    lcd.clear();
+    lcd.setCursor(0, 0); lcd.print("WiFi FAILED!");
+    lcd.setCursor(0, 1); lcd.print("Running without WiFi");
+    delay(2000);
+    lcd.clear();
+  }
   
   server.begin();
   lcd.clear();
@@ -71,7 +84,7 @@ void setup() {
   // Inisialisasi Supabase REST Client
   supabase.init(SUPABASE_URL, SUPABASE_ANON_KEY, "telemetry");
 
-  delay(5000); 
+  delay(3000);
   lcd.clear();
   waktuLamaMilli = millis();
 }
@@ -100,10 +113,10 @@ void loop() {
   float vPinOut   = (((float)tOut / numReadings) / MAX_ADC) * VREF;
 
   // --- KALIBRASI NILAI VOLTASE FISIK NYATA ---
-  vDisplaySolar  = (vPinSolar * (12.0 / 3.3) * 0.95) * 2;
-  vDisplayWind   = vPinWind * (5.0 / 3.3) * 0.992;
-  vDisplaySoil   = vPinSoil * (1.0 / 1.0);
-  vDisplayOutput = vPinOut * (10.0 / 3.3) * 0.96;
+  vDisplaySolar  = (vPinSolar * (12.0 / 3.3) * 1.1) * 2.0;
+  vDisplayWind   = vPinWind * (5.0 / 3.3);
+  vDisplaySoil   = vPinSoil;
+  vDisplayOutput = vPinOut * (10.0 / 3.3) * 1.1;
 
   // --- KALIBRASI DATA SENSOR ARUS ---
   // FIX: Also apply float cast to current sensor calculations
@@ -117,24 +130,17 @@ void loop() {
   float JedaJam = (wktSkrg - waktuLamaMilli) / 3600000.0;
   waktuLamaMilli = wktSkrg;
 
-  // --- INTEGRASI LOGIKA ADAPTIF KAPASITAS 2.6 Ah ---
   float arusMasuk_mA = arusMasukA * 1000.0;
 
-  // FIX: Replaced broken charging SoC logic with correct coulomb-counting approach.
-  // ORIGINAL BUG: The previous logic set persenBaterai=0% when arusMasuk >= 500 mA (high charge)
-  // and had a formula (arusMasuk_mA - 50.0) that was always <= 0 when arusMasuk_mA <= 50.0.
-  // This is now replaced with the same correct coulomb counting used in the local version.
   if (arusMasuk_mA > 15.0 || arusKeluarA > 0.05) {
     bateraiIsiAh = bateraiIsiAh + (arusMasukA * JedaJam) - (arusKeluarA * JedaJam);
     
-    // Clamp to physical battery capacity
     if (bateraiIsiAh > BATT_CAPACITY_AH) bateraiIsiAh = BATT_CAPACITY_AH;
     if (bateraiIsiAh < 0.0) bateraiIsiAh = 0.0;
     
     persenBaterai = (bateraiIsiAh / BATT_CAPACITY_AH) * 100.0;
     
-    // Tapering detection: if charging current is in float-charge range (<50 mA) 
-    // and solar is at full output (>12 V), assume battery is topped off at 100%.
+    // Float charge tapering: current dropping but solar at full voltage → topped off
     if (arusMasuk_mA < 50.0 && vDisplaySolar > 12.0 && arusMasuk_mA > 15.0) {
        persenBaterai = 100.0;
        bateraiIsiAh = BATT_CAPACITY_AH;

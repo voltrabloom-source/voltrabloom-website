@@ -3,6 +3,9 @@
 
 LiquidCrystal_I2C lcd(0x27, 20, 4);
 
+// NOTE: Pin assignments differ from production (Unified) firmware for calibration wiring.
+// Production: pinWind=35, pinOutput=33. This sketch: pinWind=33, pinOutput=35.
+// These are swapped to match the physical calibration harness wiring.
 const int pinSolar  = 32; 
 const int pinWind   = 33; 
 const int pinSoil   = 34; 
@@ -57,10 +60,10 @@ void loop() {
 
   float vActualOutput = vPinOutput * (10.0 / 3.3); 
 
-  Serial.print("Solar: "); Serial.print(vActualSolar); Serial.print(" V | ");
-  Serial.print("Wind: "); Serial.print(vActualWind); Serial.print(" V | ");
+  Serial.print("Solar: "); Serial.print((vActualSolar * 0.95) * 2); Serial.print(" V | ");
+  Serial.print("Wind: "); Serial.print(vActualWind * 0.992); Serial.print(" V | ");
   Serial.print("Soil: "); Serial.print(vActualSoil); Serial.print(" V | ");
-  Serial.print("OUT DC-DC: "); Serial.print(vActualOutput); Serial.println(" V");
+  Serial.print("OUT DC-DC: "); Serial.print(vActualOutput * 0.96); Serial.println(" V");
 
   
   lcd.setCursor(0, 0); 

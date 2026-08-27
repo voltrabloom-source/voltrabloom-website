@@ -59,6 +59,7 @@ public:
         http.addHeader("apikey", anonKey);
         http.addHeader("Authorization", "Bearer " + anonKey);
         http.addHeader("Prefer", "return=minimal");
+        http.setTimeout(3000); // 3-second non-blocking timeout
 
         // Construct JSON Payload
         char jsonBuffer[384];
@@ -76,21 +77,13 @@ public:
             vSolar, vWind, vSoil, vOut, iIn, iOut, battPercent, battAh
         );
 
-        Serial.print("[Supabase] Transmitting payload: ");
-        Serial.println(jsonBuffer);
-
         int httpResponseCode = http.POST(jsonBuffer);
 
         bool success = false;
         if (httpResponseCode == 201 || httpResponseCode == 200) {
-            Serial.print("[Supabase] Data logged successfully! HTTP Code: ");
-            Serial.println(httpResponseCode);
             success = true;
         } else {
-            Serial.print("[Supabase] HTTP POST Error: ");
-            Serial.print(httpResponseCode);
-            Serial.print(" - ");
-            Serial.println(http.errorToString(httpResponseCode));
+            Serial.printf("[Supabase] HTTP Error %d: %s\n", httpResponseCode, http.errorToString(httpResponseCode).c_str());
         }
 
         http.end();

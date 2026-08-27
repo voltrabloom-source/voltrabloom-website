@@ -12,10 +12,11 @@ private:
     String url;
     String anonKey;
     String tableName;
+    String endpoint;  // Pre-computed to avoid per-upload heap allocation
     unsigned long lastUploadTime;
 
 public:
-    SupabaseLogger() : url(""), anonKey(""), tableName("telemetry"), lastUploadTime(0) {}
+    SupabaseLogger() : url(""), anonKey(""), tableName("telemetry"), endpoint(""), lastUploadTime(0) {}
 
     // Initialize Supabase configuration credentials
     void init(const char* supabaseUrl, const char* supabaseAnonKey, const char* table = "telemetry") {
@@ -27,6 +28,9 @@ public:
         if (url.endsWith("/")) {
             url = url.substring(0, url.length() - 1);
         }
+        
+        // Pre-compute endpoint to avoid heap allocation on every upload
+        endpoint = url + "/rest/v1/" + tableName;
         
         Serial.println("[Supabase] Initialized cloud logger for table: " + tableName);
     }
@@ -47,7 +51,6 @@ public:
         client.setInsecure(); // Skip TLS verification for ESP32 compatibility
 
         HTTPClient http;
-        String endpoint = url + "/rest/v1/" + tableName;
 
         if (!http.begin(client, endpoint)) {
             Serial.println("[Supabase] Connection failed to endpoint: " + endpoint);
@@ -57,7 +60,10 @@ public:
         // Build RESTful API headers for Supabase PostgREST endpoint
         http.addHeader("Content-Type", "application/json");
         http.addHeader("apikey", anonKey);
-        http.addHeader("Authorization", "Bearer " + anonKey);
+        // Use char[] for Authorization header to avoid String heap allocation per upload
+        char authHeader[256];
+        snprintf(authHeader, sizeof(authHeader), "Bearer %s", anonKey.c_str());
+        http.addHeader("Authorization", authHeader);
         http.addHeader("Prefer", "return=minimal");
         http.setTimeout(3000); // 3-second non-blocking timeout
 

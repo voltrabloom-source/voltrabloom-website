@@ -46,6 +46,31 @@ const float VREF = 3.3;
 const float MAX_ADC = 4095.0;
 const float BATT_CAPACITY_AH = 2.6;
 
+// ACS712 Current Sensor Constants
+const float ACS712_ZERO_V   = 1.65;  // Zero-current output voltage (V)
+const float ACS712_SENSITIVITY = 0.185; // Sensitivity: 185 mV/A
+
+// Voltage Divider Calibration Factors
+const float SOLAR_DIVIDER_RATIO = 12.0 / 3.3;  // Solar panel 12 V divider
+const float SOLAR_CALIBRATION   = 1.1;         // Per-unit correction factor
+const float SOLAR_TWICE         = 2.0;         // Additional 2x gain stage
+const float WIND_DIVIDER_RATIO  = 5.0 / 3.3;   // Wind generator 5 V divider
+const float OUTPUT_DIVIDER_RATIO = 10.0 / 3.3; // DC-DC output 10 V divider
+const float OUTPUT_CALIBRATION  = 1.1;         // Per-unit correction factor
+
+// Coulomb Counting Thresholds
+const float CURRENT_DEADZONE_A     = 0.05;  // Minimum detectable current (A)
+const float MIN_CHARGE_CURRENT_MA  = 15.0;  // Minimum current to integrate (mA)
+const float FLOAT_TAPER_CURRENT_MA = 50.0;  // Float-charge taper threshold (mA)
+const float FULL_VOLTAGE_SOLAR_V   = 12.0;  // Solar voltage indicating full charge (V)
+const float WIND_CURRENT_ESTIMATE_A = 0.2;  // Estimated wind current when no sensor (A)
+
+// Timing Constants
+const unsigned long CLOUD_UPLOAD_INTERVAL_MS = 5000;  // Supabase upload interval
+const unsigned long LCD_UPDATE_INTERVAL_MS   = 500;   // LCD refresh interval (2 Hz)
+const unsigned long WIFI_TIMEOUT_MS          = 8000;  // WiFi connection timeout
+const unsigned long WIFI_RECONNECT_INTERVAL_MS = 30000; // WiFi reconnection check interval
+
 // Moving average filters (10-sample window)
 const int numReadings = 10;
 int readSol[numReadings], readWnd[numReadings], readSli[numReadings];
@@ -110,19 +135,20 @@ void TaskSensorAcquisition(void *pvParameters) {
     float vPinOut   = (((float)tOut / numReadings) / MAX_ADC) * VREF;
 
     // 3. Calibrate physical values
-    float localSolarV  = (vPinSolar * (12.0 / 3.3) * 1.1) * 2.0;
-    float localWindV   = vPinWind * (5.0 / 3.3);
-    float localSoilV   = vPinSoil * (1.0 / 1.0);
-    float localOutputV = vPinOut * (10.0 / 3.3) * 1.1;
+    float localSolarV  = (vPinSolar * SOLAR_DIVIDER_RATIO * SOLAR_CALIBRATION) * SOLAR_TWICE;
+    float localWindV   = vPinWind * WIND_DIVIDER_RATIO;
+    float localSoilV   = vPinSoil;
+    float localOutputV = vPinOut * OUTPUT_DIVIDER_RATIO * OUTPUT_CALIBRATION;
 
     // Current Sensor ACS712 5A module (185 mV/A, zero-offset ~1.65 V)
-    float localArusIn  = ((((float)tAIn / numReadings) / MAX_ADC) * VREF - 1.65) / 0.185;
-    float localArusOut = ((((float)tAOt / numReadings) / MAX_ADC) * VREF - 1.65) / 0.185;
+    float localArusIn  = ((((float)tAIn / numReadings) / MAX_ADC) * VREF - ACS712_ZERO_V) / ACS712_SENSITIVITY;
+    float localArusOut = ((((float)tAOt / numReadings) / MAX_ADC) * VREF - ACS712_ZERO_V) / ACS712_SENSITIVITY;
 
-    if (localArusIn < 0.05)  localArusIn = 0.0;
-    if (localArusOut < 0.05) localArusOut = 0.0;
+    if (localArusIn < CURRENT_DEADZONE_A)  localArusIn = 0.0;
+    if (localArusOut < CURRENT_DEADZONE_A) localArusOut = 0.0;
 
-    float localPowerW = (localSolarV * localArusIn) + (localWindV * 0.2);
+    // Total power: solar contribution (voltage × combined input current) + estimated wind contribution
+    float localPowerW = (localSolarV * localArusIn) + (localWindV * WIND_CURRENT_ESTIMATE_A);
 
     // 4. Coulomb Counting battery integration
     unsigned long now = millis();
@@ -136,7 +162,7 @@ void TaskSensorAcquisition(void *pvParameters) {
     if (xSemaphoreTake(xTelemetryMutex, pdMS_TO_TICKS(10)) == pdTRUE) {
       currentBattAh = sharedTelemetry.battAh;
       
-      if (currentIn_mA > 15.0 || localArusOut > 0.05) {
+      if (currentIn_mA > MIN_CHARGE_CURRENT_MA || localArusOut > CURRENT_DEADZONE_A) {
         currentBattAh = currentBattAh + (localArusIn * dtHours) - (localArusOut * dtHours);
 
         if (currentBattAh > BATT_CAPACITY_AH) currentBattAh = BATT_CAPACITY_AH;
@@ -145,7 +171,7 @@ void TaskSensorAcquisition(void *pvParameters) {
         currentSoc = (currentBattAh / BATT_CAPACITY_AH) * 100.0;
 
         // Float charge tapering detection at full voltage
-        if (currentIn_mA < 50.0 && localSolarV > 12.0 && currentIn_mA > 15.0) {
+        if (currentIn_mA < FLOAT_TAPER_CURRENT_MA && localSolarV > FULL_VOLTAGE_SOLAR_V && currentIn_mA > MIN_CHARGE_CURRENT_MA) {
           currentSoc = 100.0;
           currentBattAh = BATT_CAPACITY_AH;
         }
@@ -171,7 +197,7 @@ void TaskSensorAcquisition(void *pvParameters) {
     }
 
     // 5. Update 20x4 I2C LCD (2 Hz rate to avoid I2C bus congestion)
-    if (now - lastLcdUpdate >= 500) {
+    if (now - lastLcdUpdate >= LCD_UPDATE_INTERVAL_MS) {
       lastLcdUpdate = now;
       lcd.setCursor(0, 0); lcd.print("Solar: "); printFormat(localSolarV); lcd.print(" V  ");
       lcd.setCursor(0, 1); lcd.print("Wind : "); printFormat(localWindV);  lcd.print(" V  ");
@@ -191,21 +217,46 @@ void TaskNetworkAndCloud(void *pvParameters) {
   (void) pvParameters;
 
   unsigned long lastCloudUpload = 0;
+  unsigned long lastWifiCheck = millis();
 
   for (;;) {
-    SystemTelemetry snap;
+    // Safe defaults if mutex times out — prevents garbage data upload
+    SystemTelemetry snap = {0, 0, 0, 0, 0, 0, 1.3, 50.0, 0.0, false, "192.168.4.1"};
     if (xSemaphoreTake(xTelemetryMutex, pdMS_TO_TICKS(20)) == pdTRUE) {
       snap = sharedTelemetry;
       xSemaphoreGive(xTelemetryMutex);
+    } else {
+      vTaskDelay(pdMS_TO_TICKS(10));
+      continue; // Skip this iteration — snap contains safe defaults
+    }
+
+    // WiFi reconnection check (every 30 seconds)
+    if (millis() - lastWifiCheck >= WIFI_RECONNECT_INTERVAL_MS) {
+      lastWifiCheck = millis();
+      if (WiFi.status() != WL_CONNECTED && !snap.isAP) {
+        Serial.println("[WiFi] Connection lost, attempting reconnect...");
+        WiFi.disconnect();
+        WiFi.begin(ST_SSID, ST_PASSWORD);
+        // Wait up to 5 seconds for reconnect
+        unsigned long startReconnect = millis();
+        while (WiFi.status() != WL_CONNECTED && millis() - startReconnect < 5000) {
+          delay(200);
+        }
+        if (WiFi.status() == WL_CONNECTED) {
+          Serial.println("[WiFi] Reconnected successfully");
+        } else {
+          Serial.println("[WiFi] Reconnect failed, will retry later");
+        }
+      }
     }
 
     // 1. Background Supabase Cloud Upload (Every 5 seconds in Station mode)
-    if (!snap.isAP && (millis() - lastCloudUpload >= 5000)) {
+    if (!snap.isAP && (millis() - lastCloudUpload >= CLOUD_UPLOAD_INTERVAL_MS)) {
       lastCloudUpload = millis();
       supabase.logSerialAndSupabase(
         snap.vSolar, snap.vWind, snap.vSoil, snap.vOutput,
         snap.iIn, snap.iOut, snap.battPercent, snap.battAh,
-        5000
+        CLOUD_UPLOAD_INTERVAL_MS
       );
     }
 
@@ -310,7 +361,7 @@ void setup() {
   WiFi.begin(ST_SSID, ST_PASSWORD);
 
   unsigned long startAttempt = millis();
-  while (WiFi.status() != WL_CONNECTED && millis() - startAttempt < 8000) {
+  while (WiFi.status() != WL_CONNECTED && millis() - startAttempt < WIFI_TIMEOUT_MS) {
     delay(500);
     lcd.print(".");
   }
