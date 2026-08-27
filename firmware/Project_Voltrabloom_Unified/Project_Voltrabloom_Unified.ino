@@ -7,7 +7,7 @@
  * Hybrid Energy Harvesting & Management System (HEMS)
  * 
  * Multi-Core Task Distribution:
- * - CORE 1 (High Priority Real-Time): ADC1 sensor acquisition (100Hz), eFuse calibration,
+ * - CORE 1 (High Priority Real-Time): ADC1 sensor acquisition (100 Hz), eFuse calibration,
  *   moving-average filtering, Coulomb Counting battery SoC, and I2C LCD refresh.
  * - CORE 0 (Network & IoT Cloud): Wi-Fi Station / SoftAP manager, REST JSON API (/api/telemetry),
  *   and non-blocking background HTTPS Supabase cloud database logging.
@@ -19,10 +19,10 @@
  */
 
 // --- HARDWARE PIN CONFIGURATION (ALL STRICTLY ADC1) ---
-const int pinSolar   = 32; // ADC1_CH4 (12V Solar Panel Divider)
-const int pinWind    = 35; // ADC1_CH7 (5V Wind Generator Divider)
+const int pinSolar   = 32; // ADC1_CH4 (12 V Solar Panel Divider)
+const int pinWind    = 35; // ADC1_CH7 (5 V Wind Generator Divider)
 const int pinSoil    = 34; // ADC1_CH6 (Soil Microbial Fuel Cell)
-const int pinOutput  = 33; // ADC1_CH5 (10V DC-DC Output Divider)
+const int pinOutput  = 33; // ADC1_CH5 (10 V DC-DC Output Divider)
 const int pinAmpsIn  = 39; // ADC1_CH3 / VN (ACS712 Inflow Current)
 const int pinAmpsOut = 36; // ADC1_CH0 / VP (ACS712 Outflow Current)
 
@@ -115,7 +115,7 @@ void TaskSensorAcquisition(void *pvParameters) {
     float localSoilV   = vPinSoil * (1.0 / 1.0);
     float localOutputV = vPinOut * (10.0 / 3.3) * 1.1;
 
-    // Current Sensor ACS712 5A module (185mV/A, zero-offset ~1.65V)
+    // Current Sensor ACS712 5A module (185 mV/A, zero-offset ~1.65 V)
     float localArusIn  = ((((float)tAIn / numReadings) / MAX_ADC) * VREF - 1.65) / 0.185;
     float localArusOut = ((((float)tAOt / numReadings) / MAX_ADC) * VREF - 1.65) / 0.185;
 

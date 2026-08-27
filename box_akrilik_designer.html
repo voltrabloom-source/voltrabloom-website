@@ -134,10 +134,10 @@
                         <i class="fa-solid fa-bolt text-amber-400 mr-1.5"></i> Energi &amp; Grounding
                     </div>
                     <ul class="text-[11px] text-slate-300 list-disc list-inside space-y-1">
-                        <li>Solar monocrystalline 12V via divider</li>
-                        <li>VAWT 5V dynamo</li>
+<li>Solar monocrystalline 12 V via divider</li>
+                    <li>VAWT 5 V dynamo</li>
                         <li>SMFC millivolt bioelectric</li>
-                        <li>Copper-clad grounding rod (4u deep)</li>
+                        <li>Copper-clad grounding rod (4 cm deep)</li>
                     </ul>
                 </div>
             </div>
@@ -152,7 +152,7 @@
             <div>
                 <div class="flex justify-between text-xs font-medium mb-1">
                     <span class="text-slate-300">Kecepatan Turbin Angin</span>
-                    <span id="turbineSpeedText" class="text-amber-400 font-bold">0.025 rad/f</span>
+                    <span id="turbineSpeedText" class="text-amber-400 font-bold">0.025 rad/frame</span>
                 </div>
                 <input type="range" id="turbineSpeedRange" min="0" max="80" value="25" class="w-full accent-amber-400 h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer">
             </div>
@@ -504,7 +504,7 @@
             turbineSpeedRange.addEventListener('input', (e) => {
                 const v = parseInt(e.target.value, 10);
                 turbineSpeedRad = v / 1000;
-                turbineSpeedText.innerText = `${turbineSpeedRad.toFixed(3)} rad/f`;
+                turbineSpeedText.innerText = `${turbineSpeedRad.toFixed(3)} rad/frame`;
             });
 
             const currentSpeedRange = document.getElementById('currentSpeedRange');

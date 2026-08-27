@@ -38,3 +38,6 @@ media/design_projects/*.ipv
 # Secrets - if you move WiFi/Supabase to separate config, uncomment:
 # firmware/**/secrets.h
 # .env
+
+.vercel
+.env*

@@ -183,7 +183,7 @@ body{font-family:'Inter',sans-serif;background:#FAF6EE;color:#261E14;overflow-x:
       <div class="text-[10px] tracking-[.2em] uppercase font-bold mb-2 text-[#E2A03F]">Step 02 &bull; Signal Conditioning</div>
       <h2 class="text-3xl md:text-4xl font-serif tracking-tight leading-[1] mb-4" style="color:#261E14">MPPT & Synchronous Rectification</h2>
       <p class="text-sm leading-relaxed" style="color:#6b5f50">
-        Variable DC from solar, multi-phase AC from wind, and low-voltage bioelectric signals are routed through a multi-stage power conditioning bus. Synchronous buck-boost controllers and high-frequency Schottky rectifiers consolidate erratic environmental surges into a stable 48V internal charging rail with &gt;94% conversion efficiency.
+        Variable DC from solar, multi-phase AC from wind, and low-voltage bioelectric signals are routed through a multi-stage power conditioning bus. Synchronous buck-boost controllers and high-frequency Schottky rectifiers consolidate erratic environmental surges into a stable 48 V internal charging rail with &gt;94% conversion efficiency.
       </p>
     </div>
   </div>
@@ -220,7 +220,7 @@ body{font-family:'Inter',sans-serif;background:#FAF6EE;color:#261E14;overflow-x:
       <div class="text-[10px] tracking-[.2em] uppercase font-bold mb-2 text-[#E2A03F]">Step 05 &bull; Grid Integration</div>
       <h2 class="text-3xl md:text-4xl font-serif tracking-tight leading-[1] mb-4" style="color:#261E14">Pure Sine Inversion & AC Distribution</h2>
       <p class="text-sm leading-relaxed" style="color:#6b5f50">
-        A pure sine wave inverter switches seamlessly within &lt;10 milliseconds to supply 220V AC directly to building sub-panels. Sensitive electronics, IoT sensors, and emergency LED lighting run uninterrupted.
+        A pure sine wave inverter switches seamlessly within &lt;10 milliseconds to supply 220 V AC directly to building sub-panels. Sensitive electronics, IoT sensors, and emergency LED lighting run uninterrupted.
       </p>
     </div>
   </div>
@@ -810,7 +810,7 @@ function applyTelemetryUpdate(){
     hudBar.style.width = Telemetry.battery_soc + '%';
     hudBar.style.background = Telemetry.battery_soc > 60 ? '#4D7C0F' : (Telemetry.battery_soc > 30 ? '#E2A03F' : '#DC2626');
   }
-  if(hudOut) hudOut.textContent = Telemetry.output_v.toFixed(2) + 'V';
+  if(hudOut) hudOut.textContent = Telemetry.output_v.toFixed(2) + ' V';
   if(hudTotal) hudTotal.textContent = Telemetry.total_power_w.toFixed(1) + ' W';
 
   // Update Modal Quick Stats
