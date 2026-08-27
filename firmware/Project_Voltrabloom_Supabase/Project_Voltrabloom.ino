@@ -121,7 +121,7 @@ void loop() {
   float arusMasuk_mA = arusMasukA * 1000.0;
 
   // FIX: Replaced broken charging SoC logic with correct coulomb-counting approach.
-  // ORIGINAL BUG: The previous logic set persenBaterai=0% when arusMasuk >= 500mA (high charge)
+  // ORIGINAL BUG: The previous logic set persenBaterai=0% when arusMasuk >= 500 mA (high charge)
   // and had a formula (arusMasuk_mA - 50.0) that was always <= 0 when arusMasuk_mA <= 50.0.
   // This is now replaced with the same correct coulomb counting used in the local version.
   if (arusMasuk_mA > 15.0 || arusKeluarA > 0.05) {
@@ -133,8 +133,8 @@ void loop() {
     
     persenBaterai = (bateraiIsiAh / BATT_CAPACITY_AH) * 100.0;
     
-    // Tapering detection: if charging current is in float-charge range (<50mA) 
-    // and solar is at full output (>12V), assume battery is topped off at 100%.
+    // Tapering detection: if charging current is in float-charge range (<50 mA) 
+    // and solar is at full output (>12 V), assume battery is topped off at 100%.
     if (arusMasuk_mA < 50.0 && vDisplaySolar > 12.0 && arusMasuk_mA > 15.0) {
        persenBaterai = 100.0;
        bateraiIsiAh = BATT_CAPACITY_AH;
@@ -160,7 +160,7 @@ void loop() {
   lcd.setCursor(0, 2); lcd.print("Soil  : "); printFormat(vDisplaySoil);  lcd.print(" V   ");
   
   // Baris 4 menampilkan data tegangan Output sekaligus Indikator Baterai (B)
-  lcd.setCursor(0, 3); lcd.print("Out: "); printFormat(vDisplayOutput); lcd.print("V"); 
+  lcd.setCursor(0, 3); lcd.print("Out: "); printFormat(vDisplayOutput); lcd.print(" V "); 
   lcd.setCursor(13, 3); lcd.print("B:"); lcd.print((int)persenBaterai); lcd.print("%   ");
 
   // --- SISTEM LAYANAN WEB SERVER INTERNET HTTP ---
@@ -182,7 +182,7 @@ void loop() {
             client.print("<div class='card'>Output DC-DC<div class='value'>"); client.print(vDisplayOutput, 2); client.println(" V</div></div>");
             client.print("<div class='card' style='border-left-color:#e67e22'>Arus Masuk<div class='value'>"); client.print(arusMasukA, 2); client.println(" A</div></div>");
             client.print("<div class='card' style='border-left-color:#e74c3c'>Arus Keluar<div class='value'>"); client.print(arusKeluarA, 2); client.println(" A</div></div>");
-            client.print("<div class='card' style='border-left-color:#27ae60'>BATERAI REAL 2.6Ah (SoC)<div class='value' style='color:#27ae60'>"); client.print((int)persenBaterai); client.println(" %</div></div>");
+            client.print("<div class='card' style='border-left-color:#27ae60'>BATERAI REAL 2.6 Ah (SoC)<div class='value' style='color:#27ae60'>"); client.print((int)persenBaterai); client.println(" %</div></div>");
             client.println("</body></html>\n");
             break;
           } else { currentLine = ""; }

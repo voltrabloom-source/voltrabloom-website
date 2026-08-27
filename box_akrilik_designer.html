@@ -170,7 +170,7 @@
             <div>
                 <div class="flex justify-between text-xs font-medium mb-1">
                     <span class="text-slate-300">Skala Model (GLB)</span>
-                    <span id="modelScaleText" class="text-sky-400 font-bold">25 u</span>
+                    <span id="modelScaleText" class="text-sky-400 font-bold">25 units</span>
                 </div>
                 <input type="range" id="modelScaleRange" min="10" max="60" value="25" step="1" class="w-full accent-sky-400 h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer">
             </div>
@@ -520,7 +520,7 @@
             modelScaleRange.addEventListener('input', (e) => {
                 const v = parseInt(e.target.value, 10);
                 baseModelScale = v;
-                modelScaleText.innerText = `${v} u`;
+                modelScaleText.innerText = `${v} units`;
                 applyModelScale(v);
             });
 

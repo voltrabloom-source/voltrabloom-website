@@ -100,8 +100,8 @@ public:
             lastUploadTime = currentMillis;
 
             Serial.println("================ VOLTRABLOOM TELEMETRY ================");
-            Serial.printf("Solar: %.2fV | Wind: %.2fV | Soil: %.2fV | Out: %.2fV\n", vSolar, vWind, vSoil, vOut);
-            Serial.printf("Arus In: %.2fA | Arus Out: %.2fA | Batt: %.1f%% (%.2fAh)\n", iIn, iOut, battPercent, battAh);
+            Serial.printf("Solar: %.2f V | Wind: %.2f V | Soil: %.2f V | Out: %.2f V\n", vSolar, vWind, vSoil, vOut);
+            Serial.printf("Arus In: %.2f A | Arus Out: %.2f A | Batt: %.1f%% (%.2f Ah)\n", iIn, iOut, battPercent, battAh);
             Serial.println("------------------------------------------------------");
 
             sendTelemetry(vSolar, vWind, vSoil, vOut, iIn, iOut, battPercent, battAh);

@@ -173,10 +173,10 @@ void TaskSensorAcquisition(void *pvParameters) {
     // 5. Update 20x4 I2C LCD (2 Hz rate to avoid I2C bus congestion)
     if (now - lastLcdUpdate >= 500) {
       lastLcdUpdate = now;
-      lcd.setCursor(0, 0); lcd.print("Solar: "); printFormat(localSolarV); lcd.print("V  ");
-      lcd.setCursor(0, 1); lcd.print("Wind : "); printFormat(localWindV);  lcd.print("V  ");
-      lcd.setCursor(0, 2); lcd.print("Soil : "); printFormat(localSoilV);  lcd.print("V  ");
-      lcd.setCursor(0, 3); lcd.print("Out: "); printFormat(localOutputV); lcd.print("V ");
+      lcd.setCursor(0, 0); lcd.print("Solar: "); printFormat(localSolarV); lcd.print(" V  ");
+      lcd.setCursor(0, 1); lcd.print("Wind : "); printFormat(localWindV);  lcd.print(" V  ");
+      lcd.setCursor(0, 2); lcd.print("Soil : "); printFormat(localSoilV);  lcd.print(" V  ");
+      lcd.setCursor(0, 3); lcd.print("Out: "); printFormat(localOutputV); lcd.print(" V ");
       lcd.setCursor(12, 3); lcd.print("B:"); lcd.print((int)currentSoc); lcd.print("%   ");
     }
 
@@ -259,7 +259,7 @@ void TaskNetworkAndCloud(void *pvParameters) {
               client.print("<div class='card'>Solar Panel<div class='val'>"); client.print(snap.vSolar, 2); client.println(" V</div></div>");
               client.print("<div class='card'>Wind Turbine<div class='val'>"); client.print(snap.vWind, 2); client.println(" V</div></div>");
               client.print("<div class='card'>Soil MFC<div class='val'>"); client.print(snap.vSoil, 2); client.println(" V</div></div>");
-              client.print("<div class='card' style='border-left-color:#4D7C0F'>Battery SoC (2.6Ah)<div class='val' style='color:#4D7C0F'>"); client.print((int)snap.battPercent); client.println(" %</div></div>");
+              client.print("<div class='card' style='border-left-color:#4D7C0F'>Battery SoC (2.6 Ah)<div class='val' style='color:#4D7C0F'>"); client.print((int)snap.battPercent); client.println(" %</div></div>");
               client.print("<div class='card' style='border-left-color:#2c3e50'>DC Output<div class='val'>"); client.print(snap.vOutput, 2); client.println(" V</div></div>");
               client.println("<p style='font-size:11px;color:#c4b9a8'>API Endpoint: <a href='/api/telemetry'>/api/telemetry</a></p>");
               client.println("</body></html>");

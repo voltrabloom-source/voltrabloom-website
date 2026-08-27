@@ -146,7 +146,7 @@ function buildModel() {
   const wireMat   = new THREE.LineBasicMaterial({ color: 0xE2A03F, transparent: true, opacity: 0.85 });
 
   // --- Vertical Axis Wind Turbine (procedural, animated) ---
-  // Pole base sits on ground; total pole height 8u with hub at y=9 (so blades clear enclosure).
+  // Pole base sits on ground; total pole height 8 u with hub at y=9 (so blades clear enclosure).
   const turbineBase = new THREE.Vector3(11, 0, 0);
   const turbinePoleHeight = 8;
   const turbineHubY = 9;
@@ -198,7 +198,7 @@ function buildModel() {
     new THREE.CylinderGeometry(0.12, 0.08, groundRodHeight, 10),
     rodMat
   );
-  // Sink the rod 0.5u below the ground surface for a believable buried base.
+  // Sink the rod 0.5 u below the ground surface for a believable buried base.
   groundRod.position.set(-9, -0.5 + groundRodHeight / 2, -7);
   groundRod.castShadow = true;
   masterGroup.add(groundRod);

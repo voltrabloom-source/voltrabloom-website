@@ -111,7 +111,7 @@ void loop() {
     
     persenBaterai = (bateraiIsiAh / BATT_CAPACITY_AH) * 100.0;
     
-    // Logika Tapering Tambahan: Jika arus masuk mulai mengecil (<50mA) tetapi panel surya mendeteksi tegangan penuh (>12V), paksa SoC ke 100%
+    // Logika Tapering Tambahan: Jika arus masuk mulai mengecil (<50 mA) tetapi panel surya mendeteksi tegangan penuh (>12 V), paksa SoC ke 100%
     if (arusMasuk_mA < 50.0 && vDisplaySolar > 12.0 && arusMasuk_mA > 15.0) {
        persenBaterai = 100.0;
        bateraiIsiAh = BATT_CAPACITY_AH;
@@ -129,7 +129,7 @@ void loop() {
   lcd.setCursor(0, 1); lcd.print("Wind  : "); printFormat(vDisplayWind);  lcd.print(" V   ");
   lcd.setCursor(0, 2); lcd.print("Soil  : "); printFormat(vDisplaySoil);  lcd.print(" V   ");
   
-  lcd.setCursor(0, 3); lcd.print("Out: "); printFormat(vDisplayOutput); lcd.print("V"); 
+  lcd.setCursor(0, 3); lcd.print("Out: "); printFormat(vDisplayOutput); lcd.print(" V "); 
   lcd.setCursor(13, 3); lcd.print("B:"); lcd.print((int)persenBaterai); lcd.print("%   ");
 
   // --- SISTEM WEB SERVER ---
@@ -151,7 +151,7 @@ void loop() {
             client.print("<div class='card'>Output DC-DC<div class='value'>"); client.print(vDisplayOutput, 2); client.println(" V</div></div>");
             client.print("<div class='card' style='border-left-color:#e67e22'>Arus Masuk<div class='value'>"); client.print(arusMasukA, 2); client.println(" A</div></div>");
             client.print("<div class='card' style='border-left-color:#e74c3c'>Arus Keluar<div class='value'>"); client.print(arusKeluarA, 2); client.println(" A</div></div>");
-            client.print("<div class='card' style='border-left-color:#27ae60'>BATERAI REAL 2.6Ah (SoC)<div class='value' style='color:#27ae60'>"); client.print((int)persenBaterai); client.println(" %</div></div>");
+            client.print("<div class='card' style='border-left-color:#27ae60'>BATERAI REAL 2.6 Ah (SoC)<div class='value' style='color:#27ae60'>"); client.print((int)persenBaterai); client.println(" %</div></div>");
             client.println("</body></html>\n");
             break;
           } else { currentLine = ""; }
