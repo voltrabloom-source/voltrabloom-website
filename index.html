@@ -127,32 +127,6 @@ body{font-family:'Inter',sans-serif;background:#FAF6EE;color:#261E14;overflow-x:
       Simultaneous convergence of <b>monocrystalline solar</b>, <b>vertical-axis wind</b>, and <b>soil microbial fuel cells</b> in a single deployable architecture.
     </p>
 
-    <!-- Metrics Ribbon in Hero -->
-    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-2xl w-full mb-10 text-left">
-      <div class="glass-card p-3 rounded-xl">
-        <div class="text-[10px] uppercase tracking-wider font-semibold text-[#8a7e6e]">Total Power</div>
-        <div class="text-lg font-bold text-[#261E14] telemetry-val" id="hero-total-power">14.8 W</div>
-        <div class="text-[9px] text-[#4D7C0F] font-medium flex items-center gap-0.5">
-          <i data-lucide="zap" class="w-2.5 h-2.5"></i> Active Harvest
-        </div>
-      </div>
-      <div class="glass-card p-3 rounded-xl">
-        <div class="text-[10px] uppercase tracking-wider font-semibold text-[#8a7e6e]">Battery SoC</div>
-        <div class="text-lg font-bold text-[#4D7C0F] telemetry-val" id="hero-battery-soc">78%</div>
-        <div class="text-[9px] text-[#8a7e6e]">48V 2.6Ah LiFePO4</div>
-      </div>
-      <div class="glass-card p-3 rounded-xl">
-        <div class="text-[10px] uppercase tracking-wider font-semibold text-[#8a7e6e]">Solar Voltage</div>
-        <div class="text-lg font-bold text-[#E2A03F] telemetry-val" id="hero-solar-v">13.2 V</div>
-        <div class="text-[9px] text-[#8a7e6e]">MPPT Tracking</div>
-      </div>
-      <div class="glass-card p-3 rounded-xl">
-        <div class="text-[10px] uppercase tracking-wider font-semibold text-[#8a7e6e]">Wind Turbine</div>
-        <div class="text-lg font-bold text-[#261E14] telemetry-val" id="hero-wind-v">4.8 V</div>
-        <div class="text-[9px] text-[#8a7e6e]">VAWT Dynamo</div>
-      </div>
-    </div>
-
     <!-- Action Buttons -->
     <div class="flex flex-wrap items-center justify-center gap-3.5">
       <button onclick="toggleAnalyticsModal()" id="btn-live-telemetry" class="interactive-el inline-flex items-center gap-2.5 px-6 py-3 rounded-lg text-xs font-semibold tracking-wide text-white transition-all shadow-md hover:scale-[1.02]" style="background:#E2A03F">
@@ -819,17 +793,6 @@ async function fetchSupabaseLatest(){
 
 // Apply telemetry values to all UI targets
 function applyTelemetryUpdate(){
-  // Update Hero Metrics
-  const heroTotal = document.getElementById('hero-total-power');
-  const heroSoc = document.getElementById('hero-battery-soc');
-  const heroSolar = document.getElementById('hero-solar-v');
-  const heroWind = document.getElementById('hero-wind-v');
-
-  if(heroTotal) heroTotal.textContent = Telemetry.total_power_w.toFixed(1) + ' W';
-  if(heroSoc) heroSoc.textContent = Math.round(Telemetry.battery_soc) + '%';
-  if(heroSolar) heroSolar.textContent = Telemetry.solar_v.toFixed(1) + ' V';
-  if(heroWind) heroWind.textContent = Telemetry.wind_v.toFixed(1) + ' V';
-
   // Update HUD
   const hudSolar = document.getElementById('hud-solar');
   const hudWind = document.getElementById('hud-wind');
