@@ -1,0 +1,26 @@
+CompileFlags:
+  Add:
+    - "-xc++"
+    - "-D__XTENSA__=1"
+    - "-D__xtensa__=1"
+    - "-DCONFIG_IDF_TARGET_ESP32=1"
+    - "-DESP32=ESP32"
+    - "-DARDUINO_ARCH_ESP32"
+    - "-DARDUINO_ESP32_DEV"
+    - "-Wno-unknown-argument"
+    - "-Wno-typedef-redefinition"
+  Remove:
+    - "-mlongcalls"
+    - "-mdisable-hardware-atomics"
+    - "-fstrict-volatile-bitfields"
+
+Diagnostics:
+  Suppress:
+    - "pp_file_not_found"
+    - "unknown_argument"
+    - "pp_macro_not_defined"
+    - "redefinition_different_typedef"
+    - "typedef_redefinition"
+    - "drv_compilation_job_expected"
+    - "typecheck_undeclared_ident"
+    - "unknown_typename"

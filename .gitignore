@@ -1,0 +1,31 @@
+# Vendored portable Arduino IDE (~500MB) - do not push, reinstall from tools/Arduino IDE download if needed
+/tools/
+
+# Raw Google Drive backup - treat as immutable local archive
+/_archive_raw_downloads/
+
+# Duplicate/unorganized web drafts
+/keperluan web voltra/
+
+# Duplicate sketch copies at repo root (firmware/ is canonical) - anchored to root only
+/Project_Voltrabloom/
+/tester_pertama/
+
+# OS / IDE
+desktop.ini
+Thumbs.db
+.DS_Store
+*.code-workspace
+.vscode/
+*.o
+*.elf
+*.bin
+*.hex
+
+# Design exports
+media/design_projects/*.ipv
+3d_models/archives/
+
+# Secrets - if you move WiFi/Supabase to separate config, uncomment:
+# firmware/**/secrets.h
+# .env

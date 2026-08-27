@@ -1,0 +1,1076 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Desain 3D Box Akrilik Ganda & Miniatur Rumah</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Font Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Three.js Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- OrbitControls -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            user-select: none;
+            overflow: hidden;
+            background-color: #0f172a;
+        }
+        canvas {
+            display: block;
+            width: 100vw;
+            height: 100vh;
+            outline: none;
+        }
+        /* Custom scrollbar for control panels */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.6);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(56, 189, 248, 0.3);
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(56, 189, 248, 0.6);
+        }
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.75);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .glass-btn {
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.2s ease;
+        }
+        .glass-btn:hover {
+            background: rgba(56, 189, 248, 0.2);
+            border-color: rgba(56, 189, 248, 0.5);
+            transform: translateY(-1px);
+        }
+        .glass-btn.active {
+            background: rgba(14, 165, 233, 0.3);
+            border-color: #38bdf8;
+            color: #38bdf8;
+        }
+    </style>
+</head>
+<body class="text-slate-100 relative">
+
+    <header class="absolute top-0 left-0 right-0 z-10 p-4 flex justify-between items-center pointer-events-none">
+        <div class="glass-panel px-5 py-3 rounded-2xl flex items-center gap-3 shadow-2xl pointer-events-auto">
+            <div class="w-10 h-10 rounded-xl bg-sky-500/20 border border-sky-400/40 flex items-center justify-center text-sky-400 font-bold">
+                <i class="fa-solid fa-cube text-lg"></i>
+            </div>
+            <div>
+                <h1 class="text-base font-bold text-white leading-tight">Visualizer 3D Box Akrilik Presisi</h1>
+                <p class="text-xs text-sky-400/80 font-medium">Satuan Ukuran: Centimeter (cm)</p>
+            </div>
+        </div>
+
+        <!-- Quick View Controls -->
+        <div class="glass-panel p-1.5 rounded-2xl flex items-center gap-1 shadow-2xl pointer-events-auto">
+            <button onclick="setCameraView('front')" class="glass-btn px-3 py-1.5 rounded-xl text-xs font-medium flex items-center gap-1.5 text-slate-200">
+                <i class="fa-solid fa-eye text-sky-400"></i> Depan (POV)
+            </button>
+            <button onclick="setCameraView('top')" class="glass-btn px-3 py-1.5 rounded-xl text-xs font-medium flex items-center gap-1.5 text-slate-200">
+                <i class="fa-solid fa-arrows-up-to-line text-sky-400"></i> Atas
+            </button>
+            <button onclick="setCameraView('iso')" class="glass-btn px-3 py-1.5 rounded-xl text-xs font-medium flex items-center gap-1.5 text-slate-200">
+                <i class="fa-solid fa-shapes text-sky-400"></i> Isometrik
+            </button>
+            <button onclick="setCameraView('hole')" class="glass-btn px-3 py-1.5 rounded-xl text-xs font-medium flex items-center gap-1.5 text-slate-200">
+                <i class="fa-solid fa-crop-simple text-amber-400"></i> Fokus Lubang
+            </button>
+        </div>
+    </header>
+
+    <aside class="absolute top-20 left-4 bottom-4 w-80 glass-panel rounded-2xl p-4 flex flex-col gap-4 overflow-y-auto z-10 shadow-2xl">
+        <div>
+            <h2 class="text-xs font-bold uppercase tracking-wider text-sky-400 mb-2">Spesifikasi Ukuran & Komponen</h2>
+            <div class="space-y-2 text-xs">
+                <!-- Box 1 Spec -->
+                <div class="bg-slate-800/60 p-3 rounded-xl border border-slate-700/50">
+                    <div class="flex justify-between items-center font-semibold text-slate-200 mb-1">
+                        <span><i class="fa-solid fa-box text-sky-400 mr-1.5"></i> Box 1 (Kiri)</span>
+                        <span class="text-xs px-2 py-0.5 rounded bg-sky-500/20 text-sky-300">Ada Tutup</span>
+                    </div>
+                    <div class="grid grid-cols-3 gap-1 text-slate-400 mt-2 text-[11px] text-center">
+                        <div class="bg-slate-900/50 p-1.5 rounded">P: <b class="text-white">22 cm</b></div>
+                        <div class="bg-slate-900/50 p-1.5 rounded">L: <b class="text-white">22 cm</b></div>
+                        <div class="bg-slate-900/50 p-1.5 rounded">T: <b class="text-white">15 cm</b></div>
+                    </div>
+                    <ul class="mt-2 space-y-1 text-[11px] text-slate-300 list-disc list-inside">
+                        <li><b class="text-amber-300">Lubang Depan Utama:</b> 9.6 x 3.9 cm (5 cm dari bawah)</li>
+                        <li><b class="text-amber-300">Lubang Kiri Atas:</b> 2 x 1 cm (Pojok depan)</li>
+                        <li><b class="text-amber-300">Lubang Atas Tutup:</b> 2x Ø 2.1 cm (Kiri & Kanan Belakang)</li>
+                        <li><b class="text-emerald-300">Sisi Belakang:</b> Dapat dibuka (Engsel bawah)</li>
+                    </ul>
+                </div>
+
+                <!-- Box 2 Spec -->
+                <div class="bg-slate-800/60 p-3 rounded-xl border border-slate-700/50">
+                    <div class="flex justify-between items-center font-semibold text-slate-200 mb-1">
+                        <span><i class="fa-solid fa-box-open text-emerald-400 mr-1.5"></i> Box 2 (Kanan)</span>
+                        <span class="text-xs px-2 py-0.5 rounded bg-amber-500/20 text-amber-300">Tanpa Tutup Utama</span>
+                    </div>
+                    <div class="grid grid-cols-3 gap-1 text-slate-400 mt-2 text-[11px] text-center">
+                        <div class="bg-slate-900/50 p-1.5 rounded">P: <b class="text-white">22 cm</b></div>
+                        <div class="bg-slate-900/50 p-1.5 rounded">L: <b class="text-white">22 cm</b></div>
+                        <div class="bg-slate-900/50 p-1.5 rounded">T: <b class="text-white">5 cm</b></div>
+                    </div>
+                    <div class="mt-2 p-2 rounded bg-purple-950/40 border border-purple-500/30">
+                        <div class="font-semibold text-purple-300 text-[11px]"><i class="fa-solid fa-cube text-purple-400 mr-1"></i> Box Kecil Dalam (Depan Kiri):</div>
+                        <div class="grid grid-cols-3 gap-1 text-[10px] text-slate-300 mt-1 text-center">
+                            <span>P: <b>8.5 cm</b></span>
+                            <span>L: <b>8.5 cm</b></span>
+                            <span>T: <b>12 cm</b></span>
+                        </div>
+                        <p class="text-[10px] text-purple-200 mt-1"><i class="fa-solid fa-circle-check text-purple-400 mr-1"></i> Dilengkapi tutup yang dapat dibuka.</p>
+                    </div>
+                </div>
+
+                <!-- Partition Hole Spec -->
+                <div class="bg-slate-800/60 p-3 rounded-xl border border-slate-700/50">
+                    <div class="font-semibold text-slate-200 text-xs mb-1 flex items-center">
+                        <i class="fa-solid fa-circle-dot text-rose-400 mr-1.5"></i> Lubang Penyambung / Sekat
+                    </div>
+                    <ul class="text-[11px] text-slate-300 list-disc list-inside space-y-1">
+                        <li><b>Sekat Belakang (Box 1 & Box 2):</b> 1 lubang Ø 1.8 cm di bawah-belakang.</li>
+                        <li><b class="text-purple-300">Sekat Depan (Box 1 & Box Mini):</b> 1 lubang Ø 1.8 cm di bawah-depan (akses langsung ke Box Mini).</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <hr class="border-slate-700/50">
+
+        <div class="space-y-4">
+            <h2 class="text-xs font-bold uppercase tracking-wider text-sky-400">Interaksi & Visual</h2>
+
+            <!-- Lid Opener Slider -->
+            <div>
+                <div class="flex justify-between text-xs font-medium mb-1">
+                    <span class="text-slate-300">Buka Tutup Box 1 (Utama)</span>
+                    <span id="lidAngleText" class="text-sky-400 font-bold">0°</span>
+                </div>
+                <input type="range" id="lidRange" min="0" max="110" value="0" class="w-full accent-sky-400 h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer">
+            </div>
+
+            <!-- Inner Box Lid Opener Slider -->
+            <div>
+                <div class="flex justify-between text-xs font-medium mb-1">
+                    <span class="text-slate-300">Buka Tutup Box Kecil (Box 2)</span>
+                    <span id="innerLidAngleText" class="text-purple-400 font-bold">0°</span>
+                </div>
+                <input type="range" id="innerLidRange" min="0" max="110" value="0" class="w-full accent-purple-400 h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer">
+            </div>
+
+            <!-- Back Door Opener Slider -->
+            <div>
+                <div class="flex justify-between text-xs font-medium mb-1">
+                    <span class="text-slate-300">Buka Dinding Belakang Box 1</span>
+                    <span id="backDoorAngleText" class="text-sky-400 font-bold">0°</span>
+                </div>
+                <input type="range" id="backDoorRange" min="0" max="110" value="0" class="w-full accent-sky-400 h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer">
+            </div>
+
+            <!-- Separation Slider -->
+            <div>
+                <div class="flex justify-between text-xs font-medium mb-1">
+                    <span class="text-slate-300">Geser Sela Box (Inspeksi Dinding)</span>
+                    <span id="gapText" class="text-sky-400 font-bold">0 cm</span>
+                </div>
+                <input type="range" id="gapRange" min="0" max="8" value="0" step="0.5" class="w-full accent-sky-400 h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer">
+            </div>
+
+            <!-- Material Tint Selector -->
+            <div>
+                <label class="text-xs font-medium text-slate-300 block mb-1.5">Tampilan Bahan Akrilik</label>
+                <div class="grid grid-cols-2 gap-1.5">
+                    <button onclick="setAcrylicStyle('clear')" class="glass-btn p-2 rounded-xl text-xs font-medium text-left flex items-center gap-2 active" id="btn-clear">
+                        <span class="w-3 h-3 rounded-full bg-sky-200 border border-white"></span> Bening / Clear
+                    </button>
+                    <button onclick="setAcrylicStyle('smoked')" class="glass-btn p-2 rounded-xl text-xs font-medium text-left flex items-center gap-2" id="btn-smoked">
+                        <span class="w-3 h-3 rounded-full bg-slate-700 border border-slate-400"></span> Smoked Tint
+                    </button>
+                    <button onclick="setAcrylicStyle('cyan')" class="glass-btn p-2 rounded-xl text-xs font-medium text-left flex items-center gap-2" id="btn-cyan">
+                        <span class="w-3 h-3 rounded-full bg-cyan-400 border border-cyan-200"></span> Ice Cyan
+                    </button>
+                    <button onclick="setAcrylicStyle('frosted')" class="glass-btn p-2 rounded-xl text-xs font-medium text-left flex items-center gap-2" id="btn-frosted">
+                        <span class="w-3 h-3 rounded-full bg-slate-100/50 border border-white"></span> Buram / Frosted
+                    </button>
+                </div>
+            </div>
+
+            <!-- Toggle Options -->
+            <div class="space-y-2 pt-1">
+                <label class="flex items-center justify-between text-xs text-slate-300 cursor-pointer p-2 rounded-xl bg-slate-800/40 hover:bg-slate-800/80">
+                    <span><i class="fa-solid fa-ruler-combined text-sky-400 mr-2"></i> Tampilkan Ukuran (Ruler)</span>
+                    <input type="checkbox" id="toggleDimensions" checked class="accent-sky-400 w-4 h-4 rounded">
+                </label>
+            </div>
+        </div>
+    </aside>
+
+    <div class="absolute bottom-4 right-4 glass-panel px-4 py-2.5 rounded-2xl text-xs text-slate-300 flex items-center gap-3 shadow-xl z-10 pointer-events-none">
+        <div class="flex items-center gap-1.5"><i class="fa-solid fa-computer-mouse text-sky-400"></i> Klik + Drag: Putar Kamera</div>
+        <div class="w-px h-3 bg-slate-700"></div>
+        <div class="flex items-center gap-1.5"><i class="fa-solid fa-arrows-up-down-left-right text-sky-400"></i> Right-Click: Geser</div>
+        <div class="w-px h-3 bg-slate-700"></div>
+        <div class="flex items-center gap-1.5"><i class="fa-solid fa-magnifying-glass text-sky-400"></i> Scroll: Zoom</div>
+    </div>
+
+    <!-- 3D Canvas Container -->
+    <div id="canvas-container" class="w-full h-full"></div>
+
+    <script>
+        let scene, camera, renderer, controls;
+        let box1Group, box2Group, lidGroup, backDoorGroup, dimensionsGroup;
+        let innerBoxGroup, innerLidGroup;
+        let acrylicMaterial, acrylicEdgeMaterial;
+        // FIX: Declare houseGroup and housePointLight properly to avoid accidental globals / ReferenceErrors
+        let houseGroup, housePointLight;
+
+        // Configuration dimensions (in cm)
+        const BOX1_W = 22, BOX1_D = 22, BOX1_H = 15;
+        const BOX2_W = 22, BOX2_D = 22, BOX2_H = 5;
+        const INNER_W = 8.5, INNER_D = 8.5, INNER_H = 12; // Ukuran Box Kecil di Box 2
+        const ACRYLIC_THICKNESS = 0.3; // 3mm acrylic sheet thickness
+
+        // Color Presets
+        const materialStyles = {
+            clear: { color: 0xffffff, opacity: 0.55, roughness: 0.1, transmission: 0.85 },
+            smoked: { color: 0x334155, opacity: 0.75, roughness: 0.2, transmission: 0.4 },
+            cyan: { color: 0x38bdf8, opacity: 0.60, roughness: 0.1, transmission: 0.75 },
+            frosted: { color: 0xf8fafc, opacity: 0.80, roughness: 0.6, transmission: 0.2 }
+        };
+
+        window.onload = function() {
+            initScene();
+            createEnvironment();
+            createMaterials();
+            buildBox1();
+            buildBox2();
+            buildDimensionAnnotations();
+            // FIX: buildMiniatureHouse() was defined but never called — now included in init
+            buildMiniatureHouse();
+            setupEventListeners();
+            animate();
+        };
+
+        function initScene() {
+            const container = document.getElementById('canvas-container');
+
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x0f172a);
+            scene.fog = new THREE.FogExp2(0x0f172a, 0.008);
+
+            camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.set(-1, 28, 55);
+
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            renderer.toneMapping = THREE.ACESFilmicToneMapping;
+            renderer.toneMappingExposure = 1.1;
+
+            container.appendChild(renderer.domElement);
+
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+            controls.target.set(-1, 6, 0);
+            controls.maxPolarAngle = Math.PI / 2 - 0.02;
+            controls.minDistance = 10;
+            controls.maxDistance = 150;
+        }
+
+        function createEnvironment() {
+            const ambientLight = new THREE.AmbientLight(0xf8fafc, 0.8);
+            scene.add(ambientLight);
+
+            const dirLight = new THREE.DirectionalLight(0xffffff, 1.2);
+            dirLight.position.set(25, 45, 35);
+            dirLight.castShadow = true;
+            dirLight.shadow.mapSize.width = 2048;
+            dirLight.shadow.mapSize.height = 2048;
+            dirLight.shadow.camera.near = 0.5;
+            dirLight.shadow.camera.far = 150;
+            const d = 40;
+            dirLight.shadow.camera.left = -d;
+            dirLight.shadow.camera.right = d;
+            dirLight.shadow.camera.top = d;
+            dirLight.shadow.camera.bottom = -d;
+            dirLight.shadow.bias = -0.0005;
+            scene.add(dirLight);
+
+            const fillLight = new THREE.DirectionalLight(0x38bdf8, 0.6);
+            fillLight.position.set(-30, 20, -20);
+            scene.add(fillLight);
+
+            const gridHelper = new THREE.GridHelper(120, 60, 0x38bdf8, 0x1e293b);
+            gridHelper.position.y = -0.01;
+            scene.add(gridHelper);
+
+            const floorGeo = new THREE.PlaneGeometry(160, 160);
+            const floorMat = new THREE.MeshStandardMaterial({
+                color: 0x0f172a,
+                roughness: 0.8,
+                metalness: 0.2
+            });
+            const floor = new THREE.Mesh(floorGeo, floorMat);
+            floor.rotation.x = -Math.PI / 2;
+            floor.receiveShadow = true;
+            scene.add(floor);
+        }
+
+        function createMaterials() {
+            acrylicMaterial = new THREE.MeshPhysicalMaterial({
+                color: materialStyles.clear.color,
+                transparent: true,
+                opacity: materialStyles.clear.opacity,
+                roughness: materialStyles.clear.roughness,
+                metalness: 0.05,
+                transmission: materialStyles.clear.transmission,
+                ior: 1.49,
+                thickness: ACRYLIC_THICKNESS,
+                clearcoat: 1.0,
+                clearcoatRoughness: 0.1,
+                side: THREE.DoubleSide,
+                depthWrite: true
+            });
+
+            acrylicEdgeMaterial = new THREE.LineBasicMaterial({
+                color: 0x7dd3fc,
+                linewidth: 1.5,
+                transparent: true,
+                opacity: 0.7
+            });
+        }
+
+        function createExtrudedPanel(shape, depth) {
+            const extrudeSettings = {
+                steps: 1,
+                depth: depth,
+                bevelEnabled: true,
+                bevelThickness: 0.05,
+                bevelSize: 0.05,
+                bevelOffset: 0,
+                bevelSegments: 2
+            };
+
+            const geometry = new THREE.ExtrudeGeometry(shape, extrudeSettings);
+            geometry.center();
+
+            const mesh = new THREE.Mesh(geometry, acrylicMaterial);
+            mesh.castShadow = true;
+            mesh.receiveShadow = true;
+
+            const edgesGeo = new THREE.EdgesGeometry(geometry, 25);
+            const edgesMesh = new THREE.LineSegments(edgesGeo, acrylicEdgeMaterial);
+            mesh.add(edgesMesh);
+
+            return mesh;
+        }
+
+        function createLidPanel(w, d, thickness) {
+            const shape = new THREE.Shape();
+            shape.moveTo(-w/2, 0);
+            shape.lineTo(w/2, 0);
+            shape.lineTo(w/2, d);
+            shape.lineTo(-w/2, d);
+            shape.closePath();
+
+            const r = 2.1 / 2; // Radius = 1.05 cm
+            const yHole = 2.5; // 2.5 cm from rear edge
+            const xHole = w/2 - 2.5; // Near outer left & right edges
+
+            const holeLeft = new THREE.Path();
+            holeLeft.absarc(-xHole, yHole, r, 0, Math.PI * 2, true);
+            shape.holes.push(holeLeft);
+
+            const holeRight = new THREE.Path();
+            holeRight.absarc(xHole, yHole, r, 0, Math.PI * 2, true);
+            shape.holes.push(holeRight);
+
+            const extrudeSettings = {
+                steps: 1,
+                depth: thickness,
+                bevelEnabled: true,
+                bevelThickness: 0.03,
+                bevelSize: 0.03,
+                bevelOffset: 0,
+                bevelSegments: 2
+            };
+
+            const geometry = new THREE.ExtrudeGeometry(shape, extrudeSettings);
+            geometry.rotateX(Math.PI / 2);
+
+            const mesh = new THREE.Mesh(geometry, acrylicMaterial);
+            mesh.castShadow = true;
+            mesh.receiveShadow = true;
+
+            const edgesGeo = new THREE.EdgesGeometry(geometry, 25);
+            const edgesMesh = new THREE.LineSegments(edgesGeo, acrylicEdgeMaterial);
+            mesh.add(edgesMesh);
+
+            return mesh;
+        }
+
+        function buildBox1() {
+            box1Group = new THREE.Group();
+            box1Group.position.set(-BOX1_W / 2, 0, 0);
+
+            const t = ACRYLIC_THICKNESS;
+
+            // 1. Bottom Panel
+            const bottomShape = new THREE.Shape();
+            bottomShape.moveTo(-BOX1_W/2, -BOX1_D/2);
+            bottomShape.lineTo(BOX1_W/2, -BOX1_D/2);
+            bottomShape.lineTo(BOX1_W/2, BOX1_D/2);
+            bottomShape.lineTo(-BOX1_W/2, BOX1_D/2);
+            bottomShape.closePath();
+
+            const bottomPanel = createExtrudedPanel(bottomShape, t);
+            bottomPanel.rotation.x = Math.PI / 2;
+            bottomPanel.position.set(0, t/2, 0);
+            box1Group.add(bottomPanel);
+
+            // 2. Front Panel dengan Lubang Utama (9.6 x 3.9 cm) & Lubang Kecil Pojok Kiri Atas (2 x 1 cm)
+            const frontShape = new THREE.Shape();
+            frontShape.moveTo(-BOX1_W/2, 0);
+            frontShape.lineTo(BOX1_W/2, 0);
+            frontShape.lineTo(BOX1_W/2, BOX1_H);
+            frontShape.lineTo(-BOX1_W/2, BOX1_H);
+            frontShape.closePath();
+
+            // Lubang Utama Depan (9.6 x 3.9 cm, 5 cm dari dasar bawah)
+            const holeW = 9.6;
+            const holeH = 3.9;
+            const holeYCenter = 5.0 + holeH / 2;
+            const holePath = new THREE.Path();
+            holePath.moveTo(-holeW/2, holeYCenter - holeH/2);
+            holePath.lineTo(holeW/2, holeYCenter - holeH/2);
+            holePath.lineTo(holeW/2, holeYCenter + holeH/2);
+            holePath.lineTo(-holeW/2, holeYCenter + holeH/2);
+            holePath.closePath();
+            frontShape.holes.push(holePath);
+
+            // Lubang Kecil Tambahan (Pojok Kiri Atas: 2 x 1 cm)
+            const smHoleW = 2.0;
+            const smHoleH = 1.0;
+            const smHoleX = -BOX1_W/2 + 2.5; // Margin 1.5 cm dari tepi kiri
+            const smHoleY = BOX1_H - 1.5;     // Margin 1.0 cm dari tepi atas
+            const smHolePath = new THREE.Path();
+            smHolePath.moveTo(smHoleX - smHoleW/2, smHoleY - smHoleH/2);
+            smHolePath.lineTo(smHoleX + smHoleW/2, smHoleY - smHoleH/2);
+            smHolePath.lineTo(smHoleX + smHoleW/2, smHoleY + smHoleH/2);
+            smHolePath.lineTo(smHoleX - smHoleW/2, smHoleY + smHoleH/2);
+            smHolePath.closePath();
+            frontShape.holes.push(smHolePath);
+
+            const frontPanel = createExtrudedPanel(frontShape, t);
+            frontPanel.position.set(0, BOX1_H / 2, BOX1_D/2 - t/2);
+            box1Group.add(frontPanel);
+
+            // 3. Back Panel - Hinged at bottom edge
+            backDoorGroup = new THREE.Group();
+            backDoorGroup.position.set(0, 0, -BOX1_D/2 + t/2);
+
+            const backShape = new THREE.Shape();
+            backShape.moveTo(-BOX1_W/2, 0);
+            backShape.lineTo(BOX1_W/2, 0);
+            backShape.lineTo(BOX1_W/2, BOX1_H);
+            backShape.lineTo(-BOX1_W/2, BOX1_H);
+            backShape.closePath();
+
+            const backPanel = createExtrudedPanel(backShape, t);
+            backPanel.position.set(0, BOX1_H / 2, 0);
+            backDoorGroup.add(backPanel);
+            box1Group.add(backDoorGroup);
+
+            // 4. Left Side Panel (FIX: shape was truncated mid-function — completed here)
+            const leftShape = new THREE.Shape();
+            leftShape.moveTo(-BOX1_D/2, 0);
+            leftShape.lineTo(BOX1_D/2, 0);
+            leftShape.lineTo(BOX1_D/2, BOX1_H);
+            leftShape.lineTo(-BOX1_D/2, BOX1_H);
+            leftShape.closePath();
+
+            const leftPanel = createExtrudedPanel(leftShape, t);
+            leftPanel.rotation.y = Math.PI / 2;
+            leftPanel.position.set(-BOX1_W/2 + t/2, BOX1_H / 2, 0);
+            box1Group.add(leftPanel);
+
+            // 5. Partition Panel with rear-bottom pass-through hole and front mini-box hole
+            const partitionShape = new THREE.Shape();
+            partitionShape.moveTo(-BOX1_D/2, 0);
+            partitionShape.lineTo(BOX1_D/2, 0);
+            partitionShape.lineTo(BOX1_D/2, BOX1_H);
+            partitionShape.lineTo(-BOX1_D/2, BOX1_H);
+            partitionShape.closePath();
+
+            // Lubang 1: Sekat Belakang (Box 1 ke Box 2)
+            const passHolePath = new THREE.Path();
+            const holeZPos = BOX1_D/2 - 2.2; // 2.2 cm dari belakang
+            const holeYPos = 2.0;
+            passHolePath.absarc(holeZPos, holeYPos, 0.9, 0, Math.PI * 2, true);
+            partitionShape.holes.push(passHolePath);
+
+            // Lubang 2: Sekat Depan (Box 1 langsung ke Box Mini)
+            const miniPassHolePath = new THREE.Path();
+            const miniHoleZPos = -(BOX1_D/2 - t - INNER_D/2); // Posisi sejajar pusat Box Mini (Z = +5.95 cm)
+            const miniHoleYPos = 2.0;  // Diturunkan ke posisi bawah (2 cm dari dasar)
+            miniPassHolePath.absarc(miniHoleZPos, miniHoleYPos, 0.9, 0, Math.PI * 2, true);
+            partitionShape.holes.push(miniPassHolePath);
+
+            const partitionPanel = createExtrudedPanel(partitionShape, t);
+            partitionPanel.rotation.y = Math.PI / 2;
+            partitionPanel.position.set(BOX1_W/2 - t/2, BOX1_H / 2, 0);
+            box1Group.add(partitionPanel);
+
+            // 6. Top Lid Group
+            lidGroup = new THREE.Group();
+            lidGroup.position.set(0, BOX1_H, -BOX1_D/2);
+
+            const lidPanel = createLidPanel(BOX1_W, BOX1_D, t);
+            lidGroup.add(lidPanel);
+            box1Group.add(lidGroup);
+
+            scene.add(box1Group);
+        }
+
+        function buildBox2() {
+            box2Group = new THREE.Group();
+            box2Group.position.set(BOX2_W / 2, 0, 0);
+
+            const t = ACRYLIC_THICKNESS;
+
+            // Bottom Panel
+            const bottomShape = new THREE.Shape();
+            bottomShape.moveTo(-BOX2_W/2, -BOX2_D/2);
+            bottomShape.lineTo(BOX2_W/2, -BOX2_D/2);
+            bottomShape.lineTo(BOX2_W/2, BOX2_D/2);
+            bottomShape.lineTo(-BOX2_W/2, BOX2_D/2);
+            bottomShape.closePath();
+
+            const bottomPanel = createExtrudedPanel(bottomShape, t);
+            bottomPanel.rotation.x = Math.PI / 2;
+            bottomPanel.position.set(0, t/2, 0);
+            box2Group.add(bottomPanel);
+
+            // Front Panel
+            const frontShape = new THREE.Shape();
+            frontShape.moveTo(-BOX2_W/2, 0);
+            frontShape.lineTo(BOX2_W/2, 0);
+            frontShape.lineTo(BOX2_W/2, BOX2_H);
+            frontShape.lineTo(-BOX2_W/2, BOX2_H);
+            frontShape.closePath();
+
+            const frontPanel = createExtrudedPanel(frontShape, t);
+            frontPanel.position.set(0, BOX2_H / 2, BOX2_D/2 - t/2);
+            box2Group.add(frontPanel);
+
+            // Back Panel
+            const backShape = new THREE.Shape();
+            backShape.moveTo(-BOX2_W/2, 0);
+            backShape.lineTo(BOX2_W/2, 0);
+            backShape.lineTo(BOX2_W/2, BOX2_H);
+            backShape.lineTo(-BOX2_W/2, BOX2_H);
+            backShape.closePath();
+
+            const backPanel = createExtrudedPanel(backShape, t);
+            backPanel.position.set(0, BOX2_H / 2, -BOX2_D/2 + t/2);
+            box2Group.add(backPanel);
+
+            // Right Side Panel
+            const rightShape = new THREE.Shape();
+            rightShape.moveTo(-BOX2_D/2, 0);
+            rightShape.lineTo(BOX2_D/2, 0);
+            rightShape.lineTo(BOX2_D/2, BOX2_H);
+            rightShape.lineTo(-BOX2_D/2, BOX2_H);
+            rightShape.closePath();
+
+            const rightPanel = createExtrudedPanel(rightShape, t);
+            rightPanel.rotation.y = Math.PI / 2;
+            rightPanel.position.set(BOX2_W/2 - t/2, BOX2_H / 2, 0);
+            box2Group.add(rightPanel);
+
+            // ---------------------------------------------------------------------
+            // Box Kecil di Dalam Box 2 (Posisi: Depan Paling Kiri, P: 8.5, L: 8.5, T: 12)
+            // ---------------------------------------------------------------------
+            innerBoxGroup = new THREE.Group();
+            // Posisi X: rata kiri dalam Box 2 (-BOX2_W/2 + t)
+            // Posisi Z: rata depan dalam Box 2 (BOX2_D/2 - t)
+            const innerX = -BOX2_W/2 + t + INNER_W/2;
+            const innerZ = BOX2_D/2 - t - INNER_D/2;
+            innerBoxGroup.position.set(innerX, t, innerZ);
+
+            // Dasaran Box Kecil
+            const innerBottomShape = new THREE.Shape();
+            innerBottomShape.moveTo(-INNER_W/2, -INNER_D/2);
+            innerBottomShape.lineTo(INNER_W/2, -INNER_D/2);
+            innerBottomShape.lineTo(INNER_W/2, INNER_D/2);
+            innerBottomShape.lineTo(-INNER_W/2, INNER_D/2);
+            innerBottomShape.closePath();
+            const innerBottom = createExtrudedPanel(innerBottomShape, t);
+            innerBottom.rotation.x = Math.PI / 2;
+            innerBottom.position.set(0, t/2, 0);
+            innerBoxGroup.add(innerBottom);
+
+            // Dinding Depan Inner Box
+            const innerFrontShape = new THREE.Shape();
+            innerFrontShape.moveTo(-INNER_W/2, 0);
+            innerFrontShape.lineTo(INNER_W/2, 0);
+            innerFrontShape.lineTo(INNER_W/2, INNER_H);
+            innerFrontShape.lineTo(-INNER_W/2, INNER_H);
+            innerFrontShape.closePath();
+            const innerFront = createExtrudedPanel(innerFrontShape, t);
+            innerFront.position.set(0, INNER_H / 2, INNER_D/2 - t/2);
+            innerBoxGroup.add(innerFront);
+
+            // Dinding Belakang Inner Box (FIX: shape was truncated — closePath and panel creation added)
+            const innerBackShape = new THREE.Shape();
+            innerBackShape.moveTo(-INNER_W/2, 0);
+            innerBackShape.lineTo(INNER_W/2, 0);
+            innerBackShape.lineTo(INNER_W/2, INNER_H);
+            innerBackShape.lineTo(-INNER_W/2, INNER_H);
+            innerBackShape.closePath();
+
+            const innerBack = createExtrudedPanel(innerBackShape, t);
+            innerBack.position.set(0, INNER_H / 2, -INNER_D/2 + t/2);
+            innerBoxGroup.add(innerBack);
+
+            // Dinding Kiri Inner Box (Sekat ke Box 1)
+            const innerLeftShape = new THREE.Shape();
+            innerLeftShape.moveTo(-INNER_D/2, 0);
+            innerLeftShape.lineTo(INNER_D/2, 0);
+            innerLeftShape.lineTo(INNER_D/2, INNER_H);
+            innerLeftShape.lineTo(-INNER_D/2, INNER_H);
+            innerLeftShape.closePath();
+
+            // Lubang Lingkaran pada Dinding Kiri Inner Box (menembus langsung ke Box 1)
+            const innerLeftHolePath = new THREE.Path();
+            innerLeftHolePath.absarc(0, 1.7, 0.9, 0, Math.PI * 2, true); // Diturunkan sejajar dengan lubang sekat bawah Box 1
+            innerLeftShape.holes.push(innerLeftHolePath);
+
+            const innerLeft = createExtrudedPanel(innerLeftShape, t);
+            innerLeft.rotation.y = Math.PI / 2;
+            innerLeft.position.set(-INNER_W/2 + t/2, INNER_H / 2, 0);
+            innerBoxGroup.add(innerLeft);
+
+            // Dinding Kanan Inner Box
+            const innerRightShape = new THREE.Shape();
+            innerRightShape.moveTo(-INNER_D/2, 0);
+            innerRightShape.lineTo(INNER_D/2, 0);
+            innerRightShape.lineTo(INNER_D/2, INNER_H);
+            innerRightShape.lineTo(-INNER_D/2, INNER_H);
+            innerRightShape.closePath();
+            const innerRight = createExtrudedPanel(innerRightShape, t);
+            innerRight.rotation.y = Math.PI / 2;
+            innerRight.position.set(INNER_W/2 - t/2, INNER_H / 2, 0);
+            innerBoxGroup.add(innerRight);
+
+            // Tutup Box Kecil (Di Atas Box Kecil)
+            innerLidGroup = new THREE.Group();
+            innerLidGroup.position.set(0, INNER_H, -INNER_D/2);
+
+            const innerLidShape = new THREE.Shape();
+            innerLidShape.moveTo(-INNER_W/2, 0);
+            innerLidShape.lineTo(INNER_W/2, 0);
+            innerLidShape.lineTo(INNER_W/2, INNER_D);
+            innerLidShape.lineTo(-INNER_W/2, INNER_D);
+            innerLidShape.closePath();
+
+            const innerLidExtrudeSettings = {
+                steps: 1, depth: t, bevelEnabled: true, bevelThickness: 0.03, bevelSize: 0.03, bevelOffset: 0, bevelSegments: 2
+            };
+            const innerLidGeo = new THREE.ExtrudeGeometry(innerLidShape, innerLidExtrudeSettings);
+            innerLidGeo.rotateX(Math.PI / 2);
+
+            const innerLidMesh = new THREE.Mesh(innerLidGeo, acrylicMaterial);
+            innerLidMesh.castShadow = true;
+            innerLidMesh.receiveShadow = true;
+            const innerLidEdges = new THREE.LineSegments(new THREE.EdgesGeometry(innerLidGeo, 25), acrylicEdgeMaterial);
+            innerLidMesh.add(innerLidEdges);
+
+            innerLidGroup.add(innerLidMesh);
+            innerBoxGroup.add(innerLidGroup);
+
+            box2Group.add(innerBoxGroup);
+
+            scene.add(box2Group);
+        }
+
+        function buildMiniatureHouse() {
+            houseGroup = new THREE.Group();
+            houseGroup.position.set(-BOX1_W - 8, 0, 0);
+
+            // Garden / Base Plate
+            const baseGeo = new THREE.BoxGeometry(14, 0.4, 18);
+            const baseMat = new THREE.MeshStandardMaterial({ color: 0x15803d, roughness: 0.8 });
+            const baseMesh = new THREE.Mesh(baseGeo, baseMat);
+            baseMesh.position.set(0, 0.2, 0);
+            baseMesh.receiveShadow = true;
+            houseGroup.add(baseMesh);
+
+            // Stone Pathway
+            const pathGeo = new THREE.BoxGeometry(3, 0.05, 10);
+            const pathMat = new THREE.MeshStandardMaterial({ color: 0x94a3b8, roughness: 0.9 });
+            const pathMesh = new THREE.Mesh(pathGeo, pathMat);
+            pathMesh.position.set(0, 0.42, 4);
+            houseGroup.add(pathMesh);
+
+            // House Body
+            const houseW = 8, houseH = 7, houseD = 8;
+            const houseBodyGeo = new THREE.BoxGeometry(houseW, houseH, houseD);
+            const houseBodyMat = new THREE.MeshStandardMaterial({ color: 0xfff7ed, roughness: 0.6 });
+            const houseBody = new THREE.Mesh(houseBodyGeo, houseBodyMat);
+            houseBody.position.set(0, houseH/2 + 0.4, -2);
+            houseBody.castShadow = true;
+            houseBody.receiveShadow = true;
+            houseGroup.add(houseBody);
+
+            // Roof
+            const roofGeo = new THREE.ConeGeometry(7, 4.5, 4);
+            const roofMat = new THREE.MeshStandardMaterial({ color: 0xb91c1c, roughness: 0.4 });
+            const roof = new THREE.Mesh(roofGeo, roofMat);
+            roof.rotation.y = Math.PI / 4;
+            roof.position.set(0, houseH + 2.25 + 0.4, -2);
+            roof.castShadow = true;
+            houseGroup.add(roof);
+
+            // Chimney
+            const chimneyGeo = new THREE.BoxGeometry(1.2, 3, 1.2);
+            const chimneyMat = new THREE.MeshStandardMaterial({ color: 0x78350f, roughness: 0.8 });
+            const chimney = new THREE.Mesh(chimneyGeo, chimneyMat);
+            chimney.position.set(2.2, houseH + 2.5, -2);
+            chimney.castShadow = true;
+            houseGroup.add(chimney);
+
+            // Door
+            const doorGeo = new THREE.BoxGeometry(1.8, 3.2, 0.1);
+            const doorMat = new THREE.MeshStandardMaterial({ color: 0x451a03, roughness: 0.5 });
+            const door = new THREE.Mesh(doorGeo, doorMat);
+            door.position.set(0, 1.6 + 0.4, 2.05);
+            houseGroup.add(door);
+
+            // Glowing Windows
+            const windowMat = new THREE.MeshStandardMaterial({
+                color: 0xfef08a,
+                emissive: 0xfde047,
+                emissiveIntensity: 0.8,
+                roughness: 0.2
+            });
+
+            const winGeo = new THREE.BoxGeometry(1.5, 1.5, 0.1);
+            const win1 = new THREE.Mesh(winGeo, windowMat);
+            win1.position.set(-2.2, 4.5, 2.05);
+            houseGroup.add(win1);
+
+            const win2 = new THREE.Mesh(winGeo, windowMat);
+            win2.position.set(2.2, 4.5, 2.05);
+            houseGroup.add(win2);
+
+            const sideWin1 = new THREE.Mesh(winGeo, windowMat);
+            sideWin1.rotation.y = Math.PI / 2;
+            sideWin1.position.set(-4.05, 4.5, -2);
+            houseGroup.add(sideWin1);
+
+            // Warm Interior Point Light
+            housePointLight = new THREE.PointLight(0xfde047, 1.5, 12);
+            housePointLight.position.set(0, 4, -2);
+            houseGroup.add(housePointLight);
+
+            // Trees
+            const trunkGeo = new THREE.CylinderGeometry(0.3, 0.4, 2.5);
+            const trunkMat = new THREE.MeshStandardMaterial({ color: 0x451a03 });
+            const foliageGeo = new THREE.SphereGeometry(1.8, 8, 8);
+            const foliageMat = new THREE.MeshStandardMaterial({ color: 0x166534, roughness: 0.7 });
+
+            const tree1Group = new THREE.Group();
+            const trunk1 = new THREE.Mesh(trunkGeo, trunkMat);
+            trunk1.position.y = 1.25;
+            const fol1 = new THREE.Mesh(foliageGeo, foliageMat);
+            fol1.position.y = 2.8;
+            tree1Group.add(trunk1, fol1);
+            tree1Group.position.set(-4.5, 0.4, 4);
+            houseGroup.add(tree1Group);
+
+            const tree2Group = tree1Group.clone();
+            tree2Group.position.set(4.5, 0.4, -4);
+            houseGroup.add(tree2Group);
+
+            scene.add(houseGroup);
+        }
+
+        function createTextSprite(text, opts = {}) {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = 256;
+            canvas.height = 64;
+
+            ctx.fillStyle = opts.bgColor || 'rgba(15, 23, 42, 0.9)';
+            ctx.strokeStyle = opts.borderColor || '#38bdf8';
+            ctx.lineWidth = 4;
+
+            const r = 10;
+            ctx.beginPath();
+            ctx.moveTo(r, 0);
+            ctx.lineTo(canvas.width - r, 0);
+            ctx.quadraticCurveTo(canvas.width, 0, canvas.width, r);
+            ctx.lineTo(canvas.width, canvas.height - r);
+            ctx.quadraticCurveTo(canvas.width, canvas.height, canvas.width - r, canvas.height);
+            ctx.lineTo(r, canvas.height);
+            ctx.quadraticCurveTo(0, canvas.height, 0, canvas.height - r);
+            ctx.lineTo(0, r);
+            ctx.quadraticCurveTo(0, 0, r, 0);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+
+            ctx.fillStyle = opts.textColor || '#ffffff';
+            ctx.font = 'Bold 22px Inter, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(text, canvas.width / 2, canvas.height / 2);
+
+            const texture = new THREE.CanvasTexture(canvas);
+            const spriteMaterial = new THREE.SpriteMaterial({ map: texture, depthTest: false });
+            const sprite = new THREE.Sprite(spriteMaterial);
+            sprite.scale.set(opts.scaleX || 5.5, opts.scaleY || 1.35, 1);
+            return sprite;
+        }
+
+        function createDimensionLine(p1, p2, color = 0x38bdf8) {
+            const points = [p1, p2];
+            const geometry = new THREE.BufferGeometry().setFromPoints(points);
+            const material = new THREE.LineDashedMaterial({
+                color: color,
+                dashSize: 0.6,
+                gapSize: 0.3,
+                linewidth: 2
+            });
+            const line = new THREE.Line(geometry, material);
+            line.computeLineDistances();
+            return line;
+        }
+
+        function buildDimensionAnnotations() {
+            dimensionsGroup = new THREE.Group();
+
+            // 1. Box 1 Panjang: 22 cm
+            const p1_b1 = new THREE.Vector3(-22, -0.5, 12);
+            const p2_b1 = new THREE.Vector3(0, -0.5, 12);
+            dimensionsGroup.add(createDimensionLine(p1_b1, p2_b1, 0x38bdf8));
+            const s1 = createTextSprite('BOX 1 P: 22 cm', { borderColor: '#38bdf8' });
+            s1.position.set(-11, -2, 12);
+            dimensionsGroup.add(s1);
+
+            // 2. Box 1 Tinggi: 15 cm
+            const p1_b1_h = new THREE.Vector3(-23, 0, 11);
+            const p2_b1_h = new THREE.Vector3(-23, 15, 11);
+            dimensionsGroup.add(createDimensionLine(p1_b1_h, p2_b1_h, 0x38bdf8));
+            const s2 = createTextSprite('BOX 1 T: 15 cm', { borderColor: '#38bdf8' });
+            s2.position.set(-26, 7.5, 11);
+            dimensionsGroup.add(s2);
+
+            // 3. Box 1 Lebar / Depth: 22 cm
+            const p1_b1_d = new THREE.Vector3(-23, -0.5, -11);
+            const p2_b1_d = new THREE.Vector3(-23, -0.5, 11);
+            dimensionsGroup.add(createDimensionLine(p1_b1_d, p2_b1_d, 0x38bdf8));
+            const s3 = createTextSprite('L: 22 cm', { borderColor: '#38bdf8' });
+            s3.position.set(-26, -0.5, 0);
+            dimensionsGroup.add(s3);
+
+            // 4. Box 2 Panjang: 22 cm
+            const p1_b2 = new THREE.Vector3(0, -0.5, 12);
+            const p2_b2 = new THREE.Vector3(22, -0.5, 12);
+            dimensionsGroup.add(createDimensionLine(p1_b2, p2_b2, 0x34d399));
+            const s4 = createTextSprite('BOX 2 P: 22 cm', { borderColor: '#34d399' });
+            s4.position.set(11, -2, 12);
+            dimensionsGroup.add(s4);
+
+            // 5. Box 2 Tinggi: 5 cm
+            const p1_b2_h = new THREE.Vector3(23, 0, 11);
+            const p2_b2_h = new THREE.Vector3(23, 5, 11);
+            dimensionsGroup.add(createDimensionLine(p1_b2_h, p2_b2_h, 0x34d399));
+            const s5 = createTextSprite('BOX 2 T: 5 cm', { borderColor: '#34d399' });
+            s5.position.set(26, 2.5, 11);
+            dimensionsGroup.add(s5);
+
+            // 6. Callout Lubang Depan Utama
+            const sHoleFront = createTextSprite('Lubang Depan: 9.6 x 3.9 cm (5 cm dari bawah)', { borderColor: '#fbbf24', textColor: '#fef08a' });
+            sHoleFront.position.set(-11, 6.95, 14);
+            dimensionsGroup.add(sHoleFront);
+
+            // Lubang Kecil Kiri Atas Callout
+            const sHoleSmall = createTextSprite('Lubang Kiri Atas: 2 x 1 cm', { borderColor: '#fbbf24', textColor: '#fef08a' });
+            sHoleSmall.position.set(-7.5, 13.5, 14);
+            dimensionsGroup.add(sHoleSmall);
+
+            // 7. Lid Holes Callout
+            const sHoleLid = createTextSprite('2x Lubang Tutup: Ø 2.1 cm (Ujung Belakang)', { borderColor: '#fbbf24', textColor: '#fef08a' });
+            sHoleLid.position.set(-11, 17.5, -8.5);
+            dimensionsGroup.add(sHoleLid);
+
+            // 8. Partition Hole Callout
+            const sHolePart = createTextSprite('Lubang Sekat Belakang (Ke Box 2)', { borderColor: '#f43f5e', textColor: '#fecdd3' });
+            sHolePart.position.set(0, 4, -8.5);
+            dimensionsGroup.add(sHolePart);
+
+            // Lubang Sekat Depan Callout (Ke Box Mini)
+            const sHoleMiniPart = createTextSprite('Lubang Sekat Depan (Ke Box Mini: Ø 1.8 cm)', { borderColor: '#c084fc', textColor: '#f3e8ff' });
+            sHoleMiniPart.position.set(-6, 3.5, 6);
+            dimensionsGroup.add(sHoleMiniPart);
+
+            // 9. Inner Box Callout (Dalam Box 2)
+            const sInnerBox = createTextSprite('Box Kecil: 8.5 x 8.5 cm (T:12 cm + Tutup)', { borderColor: '#c084fc', textColor: '#f3e8ff' });
+            sInnerBox.position.set(4.5, 14, 6);
+            dimensionsGroup.add(sInnerBox);
+
+            scene.add(dimensionsGroup);
+        }
+
+        function setupEventListeners() {
+            window.addEventListener('resize', onWindowResize);
+
+            // Lid Angle Slider (Box 1)
+            const lidRange = document.getElementById('lidRange');
+            const lidAngleText = document.getElementById('lidAngleText');
+            lidRange.addEventListener('input', (e) => {
+                const angleDeg = parseFloat(e.target.value);
+                lidAngleText.innerText = `${angleDeg}°`;
+                if (lidGroup) {
+                    lidGroup.rotation.x = -(angleDeg * Math.PI) / 180;
+                }
+            });
+
+            // Inner Box Lid Angle Slider (Box 2)
+            const innerLidRange = document.getElementById('innerLidRange');
+            const innerLidAngleText = document.getElementById('innerLidAngleText');
+            if (innerLidRange) {
+                innerLidRange.addEventListener('input', (e) => {
+                    const angleDeg = parseFloat(e.target.value);
+                    innerLidAngleText.innerText = `${angleDeg}°`;
+                    if (innerLidGroup) {
+                        innerLidGroup.rotation.x = -(angleDeg * Math.PI) / 180;
+                    }
+                });
+            }
+
+            // Back Door Angle Slider
+            const backDoorRange = document.getElementById('backDoorRange');
+            const backDoorAngleText = document.getElementById('backDoorAngleText');
+            if (backDoorRange) {
+                backDoorRange.addEventListener('input', (e) => {
+                    const angleDeg = parseFloat(e.target.value);
+                    backDoorAngleText.innerText = `${angleDeg}°`;
+                    if (backDoorGroup) {
+                        backDoorGroup.rotation.x = -(angleDeg * Math.PI) / 180;
+                    }
+                });
+            }
+
+            // Separation Gap Slider
+            const gapRange = document.getElementById('gapRange');
+            const gapText = document.getElementById('gapText');
+            gapRange.addEventListener('input', (e) => {
+                const gap = parseFloat(e.target.value);
+                gapText.innerText = `${gap} cm`;
+                if (box1Group && box2Group) {
+                    box1Group.position.x = -BOX1_W / 2 - gap / 2;
+                    box2Group.position.x = BOX2_W / 2 + gap / 2;
+                }
+            });
+
+            // Toggle Dimensions Line
+            const toggleDimensions = document.getElementById('toggleDimensions');
+            toggleDimensions.addEventListener('change', (e) => {
+                if (dimensionsGroup) {
+                    dimensionsGroup.visible = e.target.checked;
+                }
+            });
+        }
+
+        function setCameraView(preset) {
+            const duration = 1000;
+            const startPos = camera.position.clone();
+            const startTarget = controls.target.clone();
+            let endPos = new THREE.Vector3();
+            let endTarget = new THREE.Vector3(-1, 6, 0);
+
+            switch (preset) {
+                case 'front':
+                    endPos.set(-1, 8, 55);
+                    break;
+                case 'top':
+                    endPos.set(-1, 65, 0.1);
+                    break;
+                case 'iso':
+                    endPos.set(30, 35, 45);
+                    break;
+                case 'hole':
+                    endPos.set(-15, 7.5, 22);
+                    endTarget.set(-15, 7.5, 0);
+                    break;
+            }
+
+            const startTime = performance.now();
+            function animateCamera(now) {
+                const elapsed = now - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                const ease = 1 - Math.pow(1 - progress, 3);
+
+                camera.position.lerpVectors(startPos, endPos, ease);
+                controls.target.lerpVectors(startTarget, endTarget, ease);
+                controls.update();
+
+                if (progress < 1) {
+                    requestAnimationFrame(animateCamera);
+                }
+            }
+            requestAnimationFrame(animateCamera);
+        }
+
+        function setAcrylicStyle(styleKey) {
+            const style = materialStyles[styleKey];
+            if (!style) return;
+
+            document.querySelectorAll('[id^="btn-"]').forEach(btn => btn.classList.remove('active'));
+            const activeBtn = document.getElementById(`btn-${styleKey}`);
+            if (activeBtn) activeBtn.classList.add('active');
+
+            acrylicMaterial.color.setHex(style.color);
+            acrylicMaterial.opacity = style.opacity;
+            acrylicMaterial.roughness = style.roughness;
+            acrylicMaterial.transmission = style.transmission;
+            acrylicMaterial.needsUpdate = true;
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+            renderer.render(scene, camera);
+        }
+    </script>
+</body>
+</html>

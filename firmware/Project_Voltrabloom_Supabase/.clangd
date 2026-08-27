@@ -1,0 +1,36 @@
+CompileFlags:
+  Add:
+    - "-xc++"
+    - "-D__XTENSA__=1"
+    - "-D__xtensa__=1"
+    - "-DCONFIG_IDF_TARGET_ESP32=1"
+    - "-DESP32=ESP32"
+    - "-DARDUINO_ARCH_ESP32"
+    - "-DARDUINO_ESP32_DEV"
+    - "-isystem/home/narrwpn/.arduino15/packages/esp32/hardware/esp32/3.3.11/cores/esp32"
+    - "-isystem/home/narrwpn/.arduino15/packages/esp32/hardware/esp32/3.3.11/variants/esp32"
+    - "-isystem/home/narrwpn/.arduino15/packages/esp32/hardware/esp32/3.3.11/libraries/WiFi/src"
+    - "-isystem/home/narrwpn/.arduino15/packages/esp32/hardware/esp32/3.3.11/libraries/HTTPClient/src"
+    - "-isystem/home/narrwpn/.arduino15/packages/esp32/hardware/esp32/3.3.11/libraries/WiFiClientSecure/src"
+    - "-isystem/home/narrwpn/.arduino15/packages/esp32/hardware/esp32/3.3.11/libraries/Wire/src"
+    - "-isystem/home/narrwpn/.arduino15/packages/esp32/tools/esp-x32/2601/xtensa-esp-elf/include"
+    - "-isystem/home/narrwpn/.arduino15/packages/esp32/tools/esp-x32/2601/xtensa-esp-elf/include/c++/14.2.0"
+    - "-isystem/home/narrwpn/.arduino15/packages/esp32/tools/esp-x32/2601/lib/gcc/xtensa-esp-elf/14.2.0/include"
+    - "-isystem/home/narrwpn/Arduino/libraries/LiquidCrystal_I2C"
+    - "-Wno-unknown-argument"
+    - "-Wno-typedef-redefinition"
+  Remove:
+    - "-mlongcalls"
+    - "-mdisable-hardware-atomics"
+    - "-mfix-esp32-psram-cache-issue"
+    - "-mfix-esp32-psram-cache-strategy=*"
+    - "-fstrict-volatile-bitfields"
+    - "-fno-tree-switch-conversion"
+
+Diagnostics:
+  Suppress:
+    - "unknown_argument"
+    - "pp_macro_not_defined"
+    - "redefinition_different_typedef"
+    - "typedef_redefinition"
+    - "drv_compilation_job_expected"
