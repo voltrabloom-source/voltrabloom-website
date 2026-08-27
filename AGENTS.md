@@ -40,7 +40,8 @@ These are the rules in `.agents/rules/esp32_iot_guidelines.md` and `.agents/rule
 - `index.html` calls Supabase directly with the same publishable anon key. That's fine — never paste a service_role key here.
 
 ## Three.js model assets
-- `3d_models/Frantic_Kasi.glb` is the optimized iteration; `Frantic_Kasi_v1.glb` is the original. The `index.html` 3D canvas and `viewer_3d.html` load `.glb` via `GLTFLoader`. If you add a new model, keep the relative path `3d_models/...` since the HTML files are opened from repo root.
+- `3d_models/Frantic_Kasi_v1.glb` is the original iteration; `Frantic_Kasi.glb` is the optimized revision. The `index.html` 3D canvas loads `.glb` via `GLTFLoader` at `index.html:586`. If you add a new model, keep the relative path `3d_models/...` since the HTML files are opened from repo root.
+- `viewer_3d.html` is **not** a GLB watcher — it builds the enclosure procedurally with primitives (`BoxGeometry`/`CylinderGeometry`, `viewer_3d.html:130`), no model file loaded.
 
 ## When adding a new sketch
 1. Create `firmware/<SketchName>/<SketchName>/<SketchName>.ino` (note: existing sketches use a slightly different layout — `firmware/<SketchName>/<SketchName>.ino` — and that works because the parent folder name matches; copy that pattern, not a deeper nesting).
