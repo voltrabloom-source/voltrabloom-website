@@ -335,12 +335,16 @@ void TaskNetworkAndCloud(void *pvParameters) {
 void setup() {
   WRITE_PERI_REG(RTC_CNTL_BROWN_OUT_REG, 0); // Disable brownout reset for pack stability
   Serial.begin(115200);
+  Serial.println("[BOOT] Serial OK");
 
   // Create Mutex Semaphore
   xTelemetryMutex = xSemaphoreCreateMutex();
+  Serial.println("[BOOT] Mutex created");
 
   // Initialize LCD
+  Serial.println("[BOOT] Initializing LCD...");
   lcd.init();
+  Serial.println("[BOOT] LCD init done");
   lcd.backlight();
   lcd.setCursor(0, 0); lcd.print("     VOLTRABLOOM    ");
   lcd.setCursor(0, 1); lcd.print(" FreeRTOS Dual-Core ");
@@ -356,6 +360,7 @@ void setup() {
   }
 
   // Attempt Wi-Fi Station connection (8s timeout)
+  Serial.println("[BOOT] Connecting WiFi...");
   lcd.setCursor(0, 0); lcd.print("Connecting Wi-Fi");
   WiFi.mode(WIFI_STA);
   WiFi.begin(ST_SSID, ST_PASSWORD);
@@ -372,6 +377,7 @@ void setup() {
   if (WiFi.status() == WL_CONNECTED) {
     isAPMode = false;
     currentIp = WiFi.localIP().toString();
+    Serial.println("[BOOT] WiFi connected: " + currentIp);
     lcd.clear();
     lcd.setCursor(0, 0); lcd.print("WIFI CONNECTED!");
     lcd.setCursor(0, 1); lcd.print("Mode: Station");
@@ -382,6 +388,7 @@ void setup() {
     WiFi.softAP(AP_SSID, AP_PASSWORD);
     isAPMode = true;
     currentIp = WiFi.softAPIP().toString();
+    Serial.println("[BOOT] WiFi failed, AP mode: " + currentIp);
     lcd.clear();
     lcd.setCursor(0, 0); lcd.print("AP MODE STARTED");
     lcd.setCursor(0, 1); lcd.print("SSID: " + String(AP_SSID));
