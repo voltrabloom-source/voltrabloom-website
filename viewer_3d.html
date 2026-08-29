@@ -3,9 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="VoltraBloom 3D Prototype Viewer — Interactive 3D model of the VoltraBloom hybrid energy harvesting unit.">
+<meta name="description" content="VoltraBloom 3D Prototype Viewer — Minimal empty-space view of the VoltraBloom hybrid energy harvesting unit.">
 <title>VoltraBloom 3D Model Viewer</title>
-<!-- Three.js core, controls, and GLTF loader from CDN (r128 to match index.html) -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
@@ -26,22 +25,6 @@
   }
   .panel-info h1 { font-size: 13px; margin: 0 0 2px; font-weight: 700; color: #261E14; letter-spacing: -.01em; }
   .panel-info p  { font-size: 10px; margin: 0; color: #8a7e6e; }
-  .badge {
-    position: fixed;
-    bottom: 16px;
-    right: 16px;
-    z-index: 10;
-    background: rgba(226,160,63,.12);
-    border: 1px solid rgba(226,160,63,.3);
-    border-radius: 6px;
-    padding: 6px 12px;
-    font-size: 9px;
-    letter-spacing: .12em;
-    text-transform: uppercase;
-    color: #E2A03F;
-    font-family: sans-serif;
-    pointer-events: none;
-  }
   .loading {
     position: fixed;
     inset: 0;
@@ -64,14 +47,11 @@
   <p>Klik Kiri + Geser untuk Memutar &nbsp;|&nbsp; Scroll untuk Zoom</p>
 </div>
 
-<div class="badge">Hybrid Energy System &bull; ESP32 IoT</div>
-
 <div class="loading" id="loading">Loading model&hellip;</div>
 
 <canvas id="c3d" aria-label="VoltraBloom 3D prototype model" role="img"></canvas>
 
 <script>
-// Poll until THREE, THREE.OrbitControls and THREE.GLTFLoader are available.
 function verifyAndStart() {
   if (typeof THREE !== 'undefined' && typeof THREE.OrbitControls !== 'undefined' && typeof THREE.GLTFLoader !== 'undefined') {
     buildModel();
@@ -85,10 +65,8 @@ function buildModel() {
   const canvas = document.getElementById('c3d');
   const loadingEl = document.getElementById('loading');
 
-  // --- Scene / camera / renderer ---
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(0xFAF6EE);
-  scene.fog = new THREE.FogExp2(0xFAF6EE, 0.013);
 
   const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
   camera.position.set(30, 25, 40);
@@ -96,206 +74,58 @@ function buildModel() {
   const renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-  renderer.shadowMap.enabled = true;
-  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.15;
-  renderer.outputEncoding = THREE.sRGBEncoding; // valid for r128
+  renderer.outputEncoding = THREE.sRGBEncoding;
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
   const controls = new THREE.OrbitControls(camera, renderer.domElement);
   controls.enableDamping = true;
   controls.dampingFactor = 0.05;
-  controls.target.set(5, 5, 0);
-  controls.minDistance = 10;
+  controls.target.set(0, 0, 0);
+  controls.minDistance = 5;
   controls.maxDistance = 100;
 
-  // --- Lighting ---
   const sunLight = new THREE.DirectionalLight(0xFFF5E6, 1.8);
   sunLight.position.set(15, 30, 15);
   sunLight.castShadow = true;
   sunLight.shadow.mapSize.set(1024, 1024);
   scene.add(sunLight);
 
-  const ambLight = new THREE.AmbientLight(0x90A080, 0.6);
+  const ambLight = new THREE.AmbientLight(0x90A080, 0.65);
   scene.add(ambLight);
 
-  const fillLight = new THREE.DirectionalLight(0xB0C0A0, 0.3);
+  const fillLight = new THREE.DirectionalLight(0xB0C0A0, 0.35);
   fillLight.position.set(-10, 5, -10);
   scene.add(fillLight);
 
-  // --- Ground plane (kept for the GLB and electrical rod to sit on) ---
-  const ground = new THREE.Mesh(
-    new THREE.PlaneGeometry(120, 120),
-    new THREE.MeshStandardMaterial({ color: 0xE8E0D4, roughness: 1 })
-  );
-  ground.rotation.x = -Math.PI / 2;
-  ground.position.y = -0.01;
-  ground.receiveShadow = true;
-  scene.add(ground);
-
-  // --- Root group for everything that ships with the model ---
-  const masterGroup = new THREE.Group();
-  scene.add(masterGroup);
-
-  // --- Materials for the new VAWT, ground rod, and animated wiring ---
-  const poleMat   = new THREE.MeshStandardMaterial({ color: 0x3A3428, roughness: 0.6 });
-  const hubMat    = new THREE.MeshStandardMaterial({ color: 0xD8D0C4, roughness: 0.4, metalness: 0.2 });
-  const bladeMat  = new THREE.MeshStandardMaterial({ color: 0xE2A03F, metalness: 0.3, roughness: 0.4 });
-  const rodMat    = new THREE.MeshStandardMaterial({ color: 0xB87333, metalness: 0.7, roughness: 0.45 });
-  const rodCapMat = new THREE.MeshStandardMaterial({ color: 0xE2A03F, metalness: 0.4, roughness: 0.4, emissive: 0x4A3008, emissiveIntensity: 0.2 });
-  const wireMat   = new THREE.LineBasicMaterial({ color: 0xE2A03F, transparent: true, opacity: 0.85 });
-
-  // --- Vertical Axis Wind Turbine (procedural, animated) ---
-  // Pole base sits on ground; total pole height 8 u with hub at y=9 (so blades clear enclosure).
-  const turbineBase = new THREE.Vector3(11, 0, 0);
-  const turbinePoleHeight = 8;
-  const turbineHubY = 9;
-
-  const turbinePole = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.18, 0.22, turbinePoleHeight, 12),
-    poleMat
-  );
-  turbinePole.position.set(turbineBase.x, turbineBase.y + turbinePoleHeight / 2, turbineBase.z);
-  turbinePole.castShadow = true;
-  turbinePole.receiveShadow = true;
-  masterGroup.add(turbinePole);
-
-  const turbineHub = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.45, 0.45, 0.6, 16),
-    hubMat
-  );
-  turbineHub.position.set(turbineBase.x, turbineHubY, turbineBase.z);
-  turbineHub.castShadow = true;
-  masterGroup.add(turbineHub);
-
-  // Blade group rotates around the vertical Y axis (true VAWT).
-  const turbineBladesGroup = new THREE.Group();
-  turbineBladesGroup.position.set(turbineBase.x, turbineHubY, turbineBase.z);
-  masterGroup.add(turbineBladesGroup);
-
-  const bladeCount = 6;
-  const bladeLength = 2.4;
-  const bladeWidth = 1.2;
-  for (let b = 0; b < bladeCount; b++) {
-    const blade = new THREE.Mesh(
-      new THREE.BoxGeometry(bladeLength, bladeWidth, 0.08),
-      bladeMat
-    );
-    const angle = b * (Math.PI * 2 / bladeCount);
-    // Position blades around the hub centerline; offset them outward from the pole axis.
-    blade.position.set(0, Math.cos(angle) * 0.7, Math.sin(angle) * 0.7);
-    // Tilt each blade so the flat face catches wind (slight pitch around X).
-    blade.rotation.x = angle + Math.PI / 2;
-    blade.castShadow = true;
-    turbineBladesGroup.add(blade);
-  }
-
-  // --- Grounding rod (electrical safety) ---
-  // Copper-clad rod driven into the soil, with a clamp head at the top and a heavy-gauge
-  // ground wire that returns to the main enclosure chassis.
-  const groundRodHeight = 4;
-  const groundRod = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.12, 0.08, groundRodHeight, 10),
-    rodMat
-  );
-  // Sink the rod 0.5 u below the ground surface for a believable buried base.
-  groundRod.position.set(-9, -0.5 + groundRodHeight / 2, -7);
-  groundRod.castShadow = true;
-  masterGroup.add(groundRod);
-
-  // Rod clamp / lug at the top of the grounding rod.
-  const rodClamp = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.28, 0.28, 0.35, 12),
-    rodCapMat
-  );
-  rodClamp.position.set(groundRod.position.x, groundRod.position.y + groundRodHeight / 2 + 0.15, groundRod.position.z);
-  rodClamp.castShadow = true;
-  masterGroup.add(rodClamp);
-
-  // Ground wire: heavy green/yellow conductor from rod clamp back to the main enclosure.
-  const groundWireMat = new THREE.LineBasicMaterial({ color: 0x4D7C0F });
-  const groundWirePts = [
-    new THREE.Vector3(groundRod.position.x, rodClamp.position.y, groundRod.position.z),
-    new THREE.Vector3(groundRod.position.x + 2, 0.4, groundRod.position.z + 2),
-    new THREE.Vector3(groundRod.position.x + 5, 0.4, groundRod.position.z + 5),
-    new THREE.Vector3(-2, 0.6, -2)
-  ];
-  masterGroup.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(groundWirePts), groundWireMat));
-
-  // --- Animated current flow on a wire from VAWT to enclosure ---
-  // We render the wire as a static orange line plus a small "pulse" sphere that travels
-  // along the path. This gives a visible electrical-flow animation tied to the turbine.
-  const currentPathPts = [
-    new THREE.Vector3(turbineBase.x, turbineHubY, turbineBase.z),
-    new THREE.Vector3(turbineBase.x - 2, turbineHubY - 1, turbineBase.z - 1),
-    new THREE.Vector3(turbineBase.x - 5, turbineHubY - 3, turbineBase.z - 3),
-    new THREE.Vector3(-2, 0.6, -2)
-  ];
-  const currentWire = new THREE.Line(
-    new THREE.BufferGeometry().setFromPoints(currentPathPts),
-    wireMat
-  );
-  masterGroup.add(currentWire);
-
-  // Animated pulse (a small emissive sphere) that travels along the wire.
-  const pulseGeo = new THREE.SphereGeometry(0.22, 12, 12);
-  const pulseMat = new THREE.MeshBasicMaterial({ color: 0xFFE08A });
-  const currentPulse = new THREE.Mesh(pulseGeo, pulseMat);
-  masterGroup.add(currentPulse);
-
-  // Pre-compute cumulative segment lengths so the pulse moves at a constant speed.
-  const currentPathCumulative = [0];
-  for (let i = 1; i < currentPathPts.length; i++) {
-    const seg = currentPathPts[i].distanceTo(currentPathPts[i - 1]);
-    currentPathCumulative.push(currentPathCumulative[i - 1] + seg);
-  }
-  const currentPathLength = currentPathCumulative[currentPathCumulative.length - 1];
-
-  // Returns a position on the polyline at parameter t in [0,1].
-  function pointOnPath(t) {
-    const target = t * currentPathLength;
-    for (let i = 1; i < currentPathCumulative.length; i++) {
-      if (target <= currentPathCumulative[i]) {
-        const segStart = currentPathCumulative[i - 1];
-        const segLen = currentPathCumulative[i] - segStart;
-        const localT = segLen > 0 ? (target - segStart) / segLen : 0;
-        return new THREE.Vector3().lerpVectors(currentPathPts[i - 1], currentPathPts[i], localT);
-      }
-    }
-    return currentPathPts[currentPathPts.length - 1].clone();
-  }
-
-  // --- Load Frantic_Kasi_v1.glb ---
   const gltfLoader = new THREE.GLTFLoader();
-  let gltfModel = null;
   gltfLoader.load(
-    '3d_models/Frantic_Kasi_v1.glb',
+    '3d_models/3D_model _voltrabloom.glb',
     function(gltf) {
-      gltfModel = gltf.scene;
+      const model = gltf.scene;
 
-      // Auto-scale to a robust display size (matches index.html normalization).
-      const bbox = new THREE.Box3().setFromObject(gltfModel);
+      const bbox = new THREE.Box3().setFromObject(model);
       const size = bbox.getSize(new THREE.Vector3());
       const maxDim = Math.max(size.x, size.y, size.z);
       if (maxDim > 0) {
         const scale = 25 / maxDim;
-        gltfModel.scale.set(scale, scale, scale);
+        model.scale.set(scale, scale, scale);
       }
 
-      // Center the model after scaling and lift it slightly above the ground plane.
-      const bboxScaled = new THREE.Box3().setFromObject(gltfModel);
+      const bboxScaled = new THREE.Box3().setFromObject(model);
       const center = bboxScaled.getCenter(new THREE.Vector3());
-      gltfModel.position.sub(center);
-      gltfModel.position.y += 1.5;
+      model.position.sub(center);
 
-      gltfModel.traverse((child) => {
+      model.traverse((child) => {
         if (child.isMesh) {
           child.castShadow = true;
           child.receiveShadow = true;
         }
       });
 
-      masterGroup.add(gltfModel);
+      scene.add(model);
       if (loadingEl) loadingEl.style.display = 'none';
     },
     undefined,
@@ -305,24 +135,14 @@ function buildModel() {
     }
   );
 
-  masterGroup.position.set(-5, 0, 0);
-
-  // --- Resize handler ---
   window.addEventListener('resize', () => {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight);
   });
 
-  // --- Animation loop ---
-  // turbineBladesGroup rotates around the vertical Y axis (true VAWT behavior).
-  // currentPulse travels along the wire path to visualize electricity flowing
-  // from the turbine back into the enclosure / ground system.
   function animate() {
     requestAnimationFrame(animate);
-    turbineBladesGroup.rotation.y += 0.025;     // Smooth VAWT rotation
-    const t = (Date.now() % 2400) / 2400;       // 2.4s per traversal
-    currentPulse.position.copy(pointOnPath(t));
     controls.update();
     renderer.render(scene, camera);
   }
