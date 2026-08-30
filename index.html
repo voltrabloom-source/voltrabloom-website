@@ -82,7 +82,6 @@ body{font-family:'Inter',sans-serif;background:#FAF6EE;color:#261E14;overflow-x:
       </div>
       <div>
         <span class="text-sm font-extrabold tracking-tight" style="color:#261E14">Voltra</span>
-        <span class="hidden sm:inline-block ml-2 text-[10px] px-2 py-0.5 rounded-full uppercase tracking-wider font-semibold" style="background:rgba(77,124,15,0.1);color:#4D7C0F">HEMS IoT v2.1</span>
       </div>
     </div>
 
@@ -175,10 +174,10 @@ body{font-family:'Inter',sans-serif;background:#FAF6EE;color:#261E14;overflow-x:
   <!-- Step 02: Power Conditioning -->
   <div id="step-2" class="step-block justify-end px-6 md:px-12 lg:px-20">
     <div class="max-w-xl glass-card p-8 rounded-2xl">
-      <div class="text-[10px] tracking-[.2em] uppercase font-bold mb-2 text-[#E2A03F]">Step 02 &bull; Signal Conditioning</div>
-      <h2 class="text-3xl md:text-4xl font-serif tracking-tight leading-[1] mb-4" style="color:#261E14">MPPT & Synchronous Rectification</h2>
+      <div class="text-[10px] tracking-[.2em] uppercase font-bold mb-2 text-[#E2A03F]">Step 02 &bull; POWER CONDITIONING</div>
+      <h2 class="text-3xl md:text-4xl font-serif tracking-tight leading-[1] mb-4" style="color:#261E14">Power Conditioning & Regulation</h2>
       <p class="text-sm leading-relaxed" style="color:#6b5f50">
-        Variable DC from solar, multi-phase AC from wind, and low-voltage bioelectric signals are routed through a multi-stage power conditioning bus. Synchronous buck-boost controllers and high-frequency Active ideal diode rectifiers consolidate erratic environmental surges into a stable 48 V internal charging rail with &gt;94% conversion efficiency.
+        Variable electrical outputs from the solar, wind, and SMFC sources are conditioned through appropriate power conversion stages to provide a stable DC supply for the system.
       </p>
     </div>
   </div>
@@ -186,25 +185,21 @@ body{font-family:'Inter',sans-serif;background:#FAF6EE;color:#261E14;overflow-x:
   <!-- Step 03: Embedded HEMS Controller -->
   <div id="step-3" class="step-block justify-start px-6 md:px-12 lg:px-20">
     <div class="max-w-xl glass-card p-8 rounded-2xl">
-      <div class="text-[10px] tracking-[.2em] uppercase font-bold mb-2 text-[#E2A03F]">Step 03 &bull; Neural Controller</div>
-      <h2 class="text-3xl md:text-4xl font-serif tracking-tight leading-[1] mb-4" style="color:#261E14">ESP32 Hybrid HEMS Brain</h2>
-      <p class="text-sm leading-relaxed mb-4" style="color:#6b5f50">
-        The onboard ESP32 dual-core microcontroller executes moving-average filtered ADC sampling on isolated ADC1 channels. It computes real-time Coulomb Counting state-of-charge, drives a 20x4 I2C diagnostic LCD, serves direct REST/WebSocket endpoints, and streams telemetry to Supabase Cloud.
+      <div class="text-[10px] tracking-[.2em] uppercase font-bold mb-2 text-[#E2A03F]">Step 03 &bull; ENERGY MANAGEMENT</div>
+      <h2 class="text-3xl md:text-4xl font-serif tracking-tight leading-[1] mb-4" style="color:#261E14">ESP32 Energy Management Controller</h2>
+      <p class="text-sm leading-relaxed" style="color:#6b5f50">
+        The ESP32 monitors the electrical outputs from each energy source and manages system operation based on real-time sensor data. It collects voltage and current measurements, estimates battery state of charge, and provides system telemetry for monitoring.
       </p>
-      <div class="p-3 rounded-lg bg-white/70 border border-black/5 text-[11px] text-[#6b5f50]">
-        <i data-lucide="shield-check" class="w-3.5 h-3.5 text-[#4D7C0F] inline mr-1"></i>
-        <b>Hardware Invariant:</b> 100% ADC1 dedicated channels guarantee zero Wi-Fi transmission lockups.
-      </div>
     </div>
   </div>
 
   <!-- Step 04: High Density Battery Cells -->
   <div id="step-4" class="step-block justify-end px-6 md:px-12 lg:px-20">
     <div class="max-w-xl glass-card p-8 rounded-2xl">
-      <div class="text-[10px] tracking-[.2em] uppercase font-bold mb-2 text-[#E2A03F]">Step 04 &bull; Storage Reservoir</div>
-      <h2 class="text-3xl md:text-4xl font-serif tracking-tight leading-[1] mb-4" style="color:#261E14">LiFePO4 Storage Buffer</h2>
+      <div class="text-[10px] tracking-[.2em] uppercase font-bold mb-2 text-[#E2A03F]">Step 04 &bull; ENERGY STORAGE</div>
+      <h2 class="text-3xl md:text-4xl font-serif tracking-tight leading-[1] mb-4" style="color:#261E14">LiFePO4 Energy Storage</h2>
       <p class="text-sm leading-relaxed" style="color:#6b5f50">
-        Conditioned electrical yield is stored safely into a modular LiFePO4 battery bank with active BMS cell balancing. With 2,000+ lifecycle cycles at 80% Depth of Discharge (DoD), it provides guaranteed continuous buffer power for emergency loads during total grid blackouts.
+        Conditioned electrical energy is stored in a LiFePO4 battery as an energy buffer, allowing the system to maintain a more stable power supply when renewable generation fluctuates.
       </p>
     </div>
   </div>
@@ -212,10 +207,10 @@ body{font-family:'Inter',sans-serif;background:#FAF6EE;color:#261E14;overflow-x:
   <!-- Step 05: Building AC Distribution -->
   <div id="step-5" class="step-block justify-center md:justify-start px-6 md:px-12 lg:px-20">
     <div class="max-w-xl glass-card p-8 rounded-2xl">
-      <div class="text-[10px] tracking-[.2em] uppercase font-bold mb-2 text-[#E2A03F]">Step 05 &bull; Grid Integration</div>
-      <h2 class="text-3xl md:text-4xl font-serif tracking-tight leading-[1] mb-4" style="color:#261E14">Pure Sine Inversion & AC Distribution</h2>
+      <div class="text-[10px] tracking-[.2em] uppercase font-bold mb-2 text-[#E2A03F]">Step 05 &bull; POWER DELIVERY</div>
+      <h2 class="text-3xl md:text-4xl font-serif tracking-tight leading-[1] mb-4" style="color:#261E14">Stable Power Output</h2>
       <p class="text-sm leading-relaxed" style="color:#6b5f50">
-        A pure sine wave inverter switches seamlessly within &lt;10 milliseconds to supply 220 V AC directly to building sub-panels. Sensitive electronics, IoT sensors, and emergency LED lighting run uninterrupted.
+        The conditioned energy is delivered to the intended load through a regulated output stage. Energy stored in the battery helps maintain a stable supply when renewable inputs fluctuate.
       </p>
     </div>
   </div>
@@ -225,7 +220,7 @@ body{font-family:'Inter',sans-serif;background:#FAF6EE;color:#261E14;overflow-x:
     <div class="flex items-center justify-between mb-3">
       <div class="flex items-center gap-2">
         <div id="hud-pulse" class="w-2.5 h-2.5 rounded-full bg-[#4D7C0F] glow-indicator"></div>
-        <span class="text-[10px] tracking-[.15em] uppercase font-bold text-[#261E14]">Live Telemetry HUD</span>
+        <span class="text-[10px] tracking-[.15em] uppercase font-bold text-[#261E14]">LIVE DATA</span>
       </div>
       <button onclick="toggleAnalyticsModal()" class="interactive-el text-[10px] text-[#E2A03F] hover:underline font-semibold flex items-center gap-0.5">
         Charts <i data-lucide="external-link" class="w-3 h-3"></i>
@@ -246,7 +241,7 @@ body{font-family:'Inter',sans-serif;background:#FAF6EE;color:#261E14;overflow-x:
       
       <div class="flex justify-between items-center p-1.5 rounded-lg bg-white/50">
         <span class="flex items-center gap-1.5"><i data-lucide="sprout" class="w-3.5 h-3.5 text-[#4D7C0F]"></i> Soil MFC Bio</span>
-        <span class="telemetry-val font-bold text-[#4D7C0F]" id="hud-soil">0.92 V &bull; 48 mW</span>
+        <span class="telemetry-val font-bold text-[#4D7C0F]" id="hud-soil">0.92 V</span>
       </div>
       
       <div class="flex justify-between items-center p-1.5 rounded-lg bg-white/50">
@@ -261,7 +256,6 @@ body{font-family:'Inter',sans-serif;background:#FAF6EE;color:#261E14;overflow-x:
 
       <div class="flex justify-between items-center pt-1 text-[10px] text-[#8a7e6e]">
         <span>Outflow: <b id="hud-out-v" class="text-[#261E14]">5.0 V</b></span>
-        <span>Net Harvest: <b id="hud-total-w" class="text-[#E2A03F]">14.8 W</b></span>
       </div>
     </div>
   </aside>
@@ -324,33 +318,28 @@ body{font-family:'Inter',sans-serif;background:#FAF6EE;color:#261E14;overflow-x:
     </div>
 
     <!-- Quick Stats Cards -->
-    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3.5 mb-6">
+    <div class="grid grid-cols-2 sm:grid-cols-3 gap-3.5 mb-6">
       <div class="p-3.5 rounded-xl bg-white/70 border border-black/5">
-        <span class="text-[10px] uppercase font-bold text-[#8a7e6e]">Solar Harvest</span>
-        <div class="text-lg font-bold text-[#E2A03F] telemetry-val" id="modal-stat-solar">11.4 W</div>
-        <span class="text-[9px] text-[#8a7e6e]">Peak: 18.2 W</span>
+        <span class="text-[10px] uppercase font-bold text-[#8a7e6e]">Solar Input</span>
+        <div class="text-lg font-bold text-[#E2A03F] telemetry-val" id="modal-stat-solar">13.20 V</div>
+        <span class="text-[9px] text-[#8a7e6e]">Peak: 18.2 V</span>
       </div>
       <div class="p-3.5 rounded-xl bg-white/70 border border-black/5">
-        <span class="text-[10px] uppercase font-bold text-[#8a7e6e]">Wind Generation</span>
-        <div class="text-lg font-bold text-sky-600 telemetry-val" id="modal-stat-wind">3.1 W</div>
+        <span class="text-[10px] uppercase font-bold text-[#8a7e6e]">Wind Turbine</span>
+        <div class="text-lg font-bold text-sky-600 telemetry-val" id="modal-stat-wind">4.85 V</div>
         <span class="text-[9px] text-[#8a7e6e]">Avg RPM: 240</span>
       </div>
       <div class="p-3.5 rounded-xl bg-white/70 border border-black/5">
-        <span class="text-[10px] uppercase font-bold text-[#8a7e6e]">Bio-MFC Power</span>
-        <div class="text-lg font-bold text-[#4D7C0F] telemetry-val" id="modal-stat-soil">48 mW</div>
+        <span class="text-[10px] uppercase font-bold text-[#8a7e6e]">Soil MFC Bio</span>
+        <div class="text-lg font-bold text-[#4D7C0F] telemetry-val" id="modal-stat-soil">0.92 V</div>
         <span class="text-[9px] text-[#8a7e6e]">Moisture: 42%</span>
-      </div>
-      <div class="p-3.5 rounded-xl bg-white/70 border border-black/5">
-        <span class="text-[10px] uppercase font-bold text-[#8a7e6e]">Total Today</span>
-        <div class="text-lg font-bold text-[#261E14] telemetry-val" id="modal-stat-total">184 Wh</div>
-        <span class="text-[9px] text-[#4D7C0F] font-semibold">-0.12 kg CO2</span>
       </div>
     </div>
 
     <!-- Chart 1: Harvester Power Curves (Solar vs Wind vs Soil) -->
     <div class="mb-6 p-4 rounded-2xl bg-white/80 border border-black/5">
       <div class="flex items-center justify-between mb-3">
-        <span class="text-xs font-bold uppercase tracking-wider text-[#261E14]">Energy Generation Comparison (W)</span>
+        <span class="text-xs font-bold uppercase tracking-wider text-[#261E14]">Total Energy Generation — Solar Input + Wind Turbine + Soil MFC Bio (V)</span>
         <span class="text-[10px] px-2 py-0.5 rounded bg-amber-500/10 text-amber-700 font-medium">Real-Time Stream</span>
       </div>
       <div class="h-56 w-full">
@@ -361,11 +350,30 @@ body{font-family:'Inter',sans-serif;background:#FAF6EE;color:#261E14;overflow-x:
     <!-- Chart 2: Battery State of Charge (SoC %) -->
     <div class="p-4 rounded-2xl bg-white/80 border border-black/5">
       <div class="flex items-center justify-between mb-3">
-        <span class="text-xs font-bold uppercase tracking-wider text-[#261E14]">Battery Bank SoC (%) & Discharge Timeline</span>
+        <span class="text-xs font-bold uppercase tracking-wider text-[#261E14]">Battery SoC</span>
         <span class="text-[10px] px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-700 font-medium">Coulomb Counting</span>
       </div>
       <div class="h-44 w-full">
         <canvas id="chart-battery"></canvas>
+      </div>
+    </div>
+
+    <!-- Additional Metrics: DC Output, Input Current, Output Current -->
+    <div class="grid grid-cols-2 sm:grid-cols-3 gap-3.5 mt-6">
+      <div class="p-3.5 rounded-xl bg-white/70 border border-black/5">
+        <span class="text-[10px] uppercase font-bold text-[#8a7e6e]">DC Output</span>
+        <div class="text-lg font-bold text-[#7C3AED] telemetry-val" id="modal-stat-output">5.00 V</div>
+        <span class="text-[9px] text-[#8a7e6e]">Regulated 5V rail</span>
+      </div>
+      <div class="p-3.5 rounded-xl bg-white/70 border border-black/5">
+        <span class="text-[10px] uppercase font-bold text-[#8a7e6e]">Input Current</span>
+        <div class="text-lg font-bold text-[#0891B2] telemetry-val" id="modal-stat-current-in">0.86 A</div>
+        <span class="text-[9px] text-[#8a7e6e]">Charging current</span>
+      </div>
+      <div class="p-3.5 rounded-xl bg-white/70 border border-black/5">
+        <span class="text-[10px] uppercase font-bold text-[#8a7e6e]">Output Current</span>
+        <div class="text-lg font-bold text-[#DC2626] telemetry-val" id="modal-stat-current-out">0.45 A</div>
+        <span class="text-[9px] text-[#8a7e6e]">Load current</span>
       </div>
     </div>
   </div>
@@ -448,6 +456,14 @@ body{font-family:'Inter',sans-serif;background:#FAF6EE;color:#261E14;overflow-x:
      JAVASCRIPT: THREE.JS 3D ENGINE, CHART.JS & TELEMETRY CONTROLLER
      ============================================================================== -->
 <script>
+// --- Supabase Global Client (initialized once to prevent Multiple GoTrueClient warning) ---
+const SUPABASE_URL = "https://qucbixztkrneifeerkaa.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF1Y2JpeHp0a3JuZWlmZWVya2FhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc0MDk0NjAsImV4cCI6MjEwMjk4NTQ2MH0.81XcwBD0kSUausyFieQ0QMwKz7l8GEtKjec1yObbBpQ";
+let supabaseClient = null;
+if (typeof window !== 'undefined' && window.supabase && window.supabase.createClient) {
+  supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+}
+
 // Global Telemetry State
 const Telemetry = {
   solar_v: 13.20,
@@ -474,7 +490,10 @@ const ChartData = {
   solar: [],
   wind: [],
   soil: [],
-  soc: []
+  soc: [],
+  output: [],
+  currentIn: [],
+  currentOut: []
 };
 
 let harvestChart = null;
@@ -678,10 +697,13 @@ function initTelemetryEngine(){
   for(let i = 9; i >= 0; i--){
     const t = new Date(now.getTime() - i * 3000);
     ChartData.labels.push(t.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
-    ChartData.solar.push(+(10.5 + Math.random() * 3).toFixed(1));
-    ChartData.wind.push(+(2.5 + Math.random() * 1.5).toFixed(1));
-    ChartData.soil.push(+(0.04 + Math.random() * 0.02).toFixed(2));
+    ChartData.solar.push(+(12.5 + Math.random() * 1.5).toFixed(2));
+    ChartData.wind.push(+(3.8 + Math.random() * 1.2).toFixed(2));
+    ChartData.soil.push(+(0.88 + Math.random() * 0.08).toFixed(2));
     ChartData.soc.push(+(77 + Math.random() * 2).toFixed(0));
+    ChartData.output.push(+(4.98 + Math.random() * 0.04).toFixed(2));
+    ChartData.currentIn.push(+(0.86 + Math.random() * 0.05).toFixed(2));
+    ChartData.currentOut.push(+(0.45 + Math.random() * 0.05).toFixed(2));
   }
 
   if(telemetryInterval) clearInterval(telemetryInterval);
@@ -755,15 +777,11 @@ async function fetchLocalESP32Data(){
   applyTelemetryUpdate();
 }
 
-// Fetch latest from Supabase
+// Fetch latest from Supabase (uses global supabaseClient)
 async function fetchSupabaseLatest(){
   try {
-    const SUPABASE_URL = "https://qucbixztkrneifeerkaa.supabase.co";
-    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF1Y2JpeHp0a3JuZWlmZWVya2FhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc0MDk0NjAsImV4cCI6MjEwMjk4NTQ2MH0.81XcwBD0kSUausyFieQ0QMwKz7l8GEtKjec1yObbBpQ";
-    
-    if(window.supabase){
-      const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-      const { data, error } = await client.from('telemetry').select('*').order('created_at', { ascending: false }).limit(1);
+    if(supabaseClient){
+      const { data, error } = await supabaseClient.from('telemetry').select('*').order('created_at', { ascending: false }).limit(1);
       if(!error && data && data.length > 0){
         const row = data[0];
         Telemetry.solar_v = row.solar_v;
@@ -795,35 +813,42 @@ function applyTelemetryUpdate(){
   const hudBattery = document.getElementById('hud-battery');
   const hudBar = document.getElementById('hud-battery-bar');
   const hudOut = document.getElementById('hud-out-v');
-  const hudTotal = document.getElementById('hud-total-w');
 
   if(hudSolar) hudSolar.textContent = Telemetry.solar_v.toFixed(2) + ' V';
   if(hudWind) hudWind.textContent = Telemetry.wind_v.toFixed(2) + ' V';
-  if(hudSoil) hudSoil.textContent = Telemetry.soil_v.toFixed(2) + ' V • ' + Telemetry.soil_mw.toFixed(0) + ' mW';
+  if(hudSoil) hudSoil.textContent = Telemetry.soil_v.toFixed(2) + ' V';
   if(hudBattery) hudBattery.textContent = Math.round(Telemetry.battery_soc) + '% (' + Telemetry.battery_ah.toFixed(2) + ' Ah)';
   if(hudBar){
     hudBar.style.width = Telemetry.battery_soc + '%';
     hudBar.style.background = Telemetry.battery_soc > 60 ? '#4D7C0F' : (Telemetry.battery_soc > 30 ? '#E2A03F' : '#DC2626');
   }
   if(hudOut) hudOut.textContent = Telemetry.output_v.toFixed(2) + ' V';
-  if(hudTotal) hudTotal.textContent = Telemetry.total_power_w.toFixed(1) + ' W';
 
   // Update Modal Quick Stats
   const mSolar = document.getElementById('modal-stat-solar');
   const mWind = document.getElementById('modal-stat-wind');
   const mSoil = document.getElementById('modal-stat-soil');
+  const mOutput = document.getElementById('modal-stat-output');
+  const mCurrentIn = document.getElementById('modal-stat-current-in');
+  const mCurrentOut = document.getElementById('modal-stat-current-out');
 
-  if(mSolar) mSolar.textContent = Telemetry.solar_w.toFixed(1) + ' W';
-  if(mWind) mWind.textContent = Telemetry.wind_w.toFixed(1) + ' W';
-  if(mSoil) mSoil.textContent = Telemetry.soil_mw.toFixed(0) + ' mW';
+  if(mSolar) mSolar.textContent = Telemetry.solar_v.toFixed(2) + ' V';
+  if(mWind) mWind.textContent = Telemetry.wind_v.toFixed(2) + ' V';
+  if(mSoil) mSoil.textContent = Telemetry.soil_v.toFixed(2) + ' V';
+  if(mOutput) mOutput.textContent = Telemetry.output_v.toFixed(2) + ' V';
+  if(mCurrentIn) mCurrentIn.textContent = Telemetry.current_in_a.toFixed(2) + ' A';
+  if(mCurrentOut) mCurrentOut.textContent = Telemetry.current_out_a.toFixed(2) + ' A';
 
   // Push to Chart.js buffers
   const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
   ChartData.labels.push(timeStr);
-  ChartData.solar.push(Telemetry.solar_w);
-  ChartData.wind.push(Telemetry.wind_w);
-  ChartData.soil.push(+(Telemetry.soil_mw / 1000).toFixed(2));
+  ChartData.solar.push(Telemetry.solar_v);
+  ChartData.wind.push(Telemetry.wind_v);
+  ChartData.soil.push(Telemetry.soil_v);
   ChartData.soc.push(Math.round(Telemetry.battery_soc));
+  ChartData.output.push(Telemetry.output_v);
+  ChartData.currentIn.push(Telemetry.current_in_a);
+  ChartData.currentOut.push(Telemetry.current_out_a);
 
   if(ChartData.labels.length > 15){
     ChartData.labels.shift();
@@ -831,6 +856,9 @@ function applyTelemetryUpdate(){
     ChartData.wind.shift();
     ChartData.soil.shift();
     ChartData.soc.shift();
+    ChartData.output.shift();
+    ChartData.currentIn.shift();
+    ChartData.currentOut.shift();
   }
 
   if(harvestChart) harvestChart.update('none');
@@ -849,7 +877,7 @@ function initAnalyticsCharts(){
         labels: ChartData.labels,
         datasets: [
           {
-            label: 'Solar Power (W)',
+            label: 'Solar Input (V)',
             data: ChartData.solar,
             borderColor: '#E2A03F',
             backgroundColor: 'rgba(226, 160, 63, 0.15)',
@@ -859,7 +887,7 @@ function initAnalyticsCharts(){
             pointRadius: 2
           },
           {
-            label: 'Wind Power (W)',
+            label: 'Wind Turbine (V)',
             data: ChartData.wind,
             borderColor: '#0284C7',
             backgroundColor: 'rgba(2, 132, 199, 0.12)',
@@ -869,10 +897,40 @@ function initAnalyticsCharts(){
             pointRadius: 2
           },
           {
-            label: 'Bio-MFC Power (W)',
+            label: 'Soil MFC Bio (V)',
             data: ChartData.soil,
             borderColor: '#4D7C0F',
             backgroundColor: 'rgba(77, 124, 15, 0.15)',
+            fill: true,
+            tension: 0.35,
+            borderWidth: 2,
+            pointRadius: 2
+          },
+          {
+            label: 'DC Output (V)',
+            data: ChartData.output,
+            borderColor: '#7C3AED',
+            backgroundColor: 'rgba(124, 58, 237, 0.12)',
+            fill: true,
+            tension: 0.35,
+            borderWidth: 2,
+            pointRadius: 2
+          },
+          {
+            label: 'Input Current (A)',
+            data: ChartData.currentIn,
+            borderColor: '#0891B2',
+            backgroundColor: 'rgba(8, 145, 178, 0.12)',
+            fill: true,
+            tension: 0.35,
+            borderWidth: 2,
+            pointRadius: 2
+          },
+          {
+            label: 'Output Current (A)',
+            data: ChartData.currentOut,
+            borderColor: '#DC2626',
+            backgroundColor: 'rgba(220, 38, 38, 0.10)',
             fill: true,
             tension: 0.35,
             borderWidth: 2,
