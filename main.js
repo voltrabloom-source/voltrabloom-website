@@ -480,9 +480,10 @@ if (!prefersReducedMotion) {
     end: 'top 15%',
     scrub: 1.5,
     onUpdate: (self) => {
-      canvas.style.opacity = String(Math.max(0, 1 - self.progress * 1.05));
+      _canvasOpacityVal = Math.max(0, 1 - self.progress * 1.05);
+      canvas.style.opacity = String(_canvasOpacityVal);
     },
-    onLeaveBack: () => { canvas.style.opacity = '1'; }
+    onLeaveBack: () => { _canvasOpacityVal = 1; canvas.style.opacity = '1'; }
   });
 } else {
   // Reduced motion: instant camera positions on section enter
@@ -523,6 +524,7 @@ gsap.fromTo('.content-layer',
 const clock = new THREE.Clock();
 let isCanvasVisible = true;
 let renderPaused = false;
+let _canvasOpacityVal = 1;
 
 // Pause rendering when canvas is off-screen or invisible
 const canvasObserver = new IntersectionObserver(entries => {
@@ -534,8 +536,7 @@ function animate() {
   requestAnimationFrame(animate);
 
   // Skip rendering when canvas is hidden (opacity 0) or off-screen
-  const canvasOpacity = parseFloat(canvas.style.opacity || '1');
-  if (!isCanvasVisible || canvasOpacity <= 0.01) {
+  if (!isCanvasVisible || _canvasOpacityVal <= 0.01) {
     renderPaused = true;
     return;
   }

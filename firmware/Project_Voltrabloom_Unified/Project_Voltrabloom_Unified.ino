@@ -128,7 +128,7 @@ void TaskSensorAcquisition(void *pvParameters) {
 
     if (++rIdx >= numReadings) rIdx = 0;
 
-    // 2. High-precision float conversion (strict adherence to esp32_iot_guidelines.md)
+    // 2. High-precision float conversion
     float vPinSolar = (((float)tSol / numReadings) / MAX_ADC) * VREF;
     float vPinWind  = (((float)tWnd / numReadings) / MAX_ADC) * VREF;
     float vPinSoil  = (((float)tSli / numReadings) / MAX_ADC) * VREF;
@@ -140,14 +140,14 @@ void TaskSensorAcquisition(void *pvParameters) {
     float localSoilV   = vPinSoil;
     float localOutputV = vPinOut * OUTPUT_DIVIDER_RATIO * OUTPUT_CALIBRATION;
 
-    // Current Sensor ACS712 5A module (185 mV/A, zero-offset ~1.65 V)
+    // Current Sensor ACS712 5A module
     float localArusIn  = ((((float)tAIn / numReadings) / MAX_ADC) * VREF - ACS712_ZERO_V) / ACS712_SENSITIVITY;
     float localArusOut = ((((float)tAOt / numReadings) / MAX_ADC) * VREF - ACS712_ZERO_V) / ACS712_SENSITIVITY;
 
     if (localArusIn < CURRENT_DEADZONE_A)  localArusIn = 0.0;
     if (localArusOut < CURRENT_DEADZONE_A) localArusOut = 0.0;
 
-    // Total power: solar contribution (voltage × combined input current) + estimated wind contribution
+    // Total power
     float localPowerW = (localSolarV * localArusIn) + (localWindV * WIND_CURRENT_ESTIMATE_A);
 
     // 4. Coulomb Counting battery integration
@@ -170,7 +170,6 @@ void TaskSensorAcquisition(void *pvParameters) {
 
         currentSoc = (currentBattAh / BATT_CAPACITY_AH) * 100.0;
 
-        // Float charge tapering detection at full voltage
         if (currentIn_mA < FLOAT_TAPER_CURRENT_MA && localSolarV > FULL_VOLTAGE_SOLAR_V && currentIn_mA > MIN_CHARGE_CURRENT_MA) {
           currentSoc = 100.0;
           currentBattAh = BATT_CAPACITY_AH;
@@ -196,7 +195,7 @@ void TaskSensorAcquisition(void *pvParameters) {
       xSemaphoreGive(xTelemetryMutex);
     }
 
-    // 5. Update 20x4 I2C LCD (2 Hz rate to avoid I2C bus congestion)
+    // 5. Update 20x4 I2C LCD (2 Hz rate)
     if (now - lastLcdUpdate >= LCD_UPDATE_INTERVAL_MS) {
       lastLcdUpdate = now;
       lcd.setCursor(0, 0); lcd.print("Solar: "); printFormat(localSolarV); lcd.print(" V  ");
@@ -206,7 +205,7 @@ void TaskSensorAcquisition(void *pvParameters) {
       lcd.setCursor(12, 3); lcd.print("B:"); lcd.print((int)currentSoc); lcd.print("%   ");
     }
 
-    vTaskDelay(pdMS_TO_TICKS(10)); // 100 Hz sampling rate
+    vTaskDelay(pdMS_TO_TICKS(10));
   }
 }
 
@@ -220,24 +219,22 @@ void TaskNetworkAndCloud(void *pvParameters) {
   unsigned long lastWifiCheck = millis();
 
   for (;;) {
-    // Safe defaults if mutex times out — prevents garbage data upload
     SystemTelemetry snap = {0, 0, 0, 0, 0, 0, 1.3, 50.0, 0.0, false, "192.168.4.1"};
     if (xSemaphoreTake(xTelemetryMutex, pdMS_TO_TICKS(20)) == pdTRUE) {
       snap = sharedTelemetry;
       xSemaphoreGive(xTelemetryMutex);
     } else {
       vTaskDelay(pdMS_TO_TICKS(10));
-      continue; // Skip this iteration — snap contains safe defaults
+      continue;
     }
 
-    // WiFi reconnection check (every 30 seconds)
+    // WiFi reconnection check
     if (millis() - lastWifiCheck >= WIFI_RECONNECT_INTERVAL_MS) {
       lastWifiCheck = millis();
       if (WiFi.status() != WL_CONNECTED && !snap.isAP) {
         Serial.println("[WiFi] Connection lost, attempting reconnect...");
         WiFi.disconnect();
         WiFi.begin(ST_SSID, ST_PASSWORD);
-        // Wait up to 5 seconds for reconnect
         unsigned long startReconnect = millis();
         while (WiFi.status() != WL_CONNECTED && millis() - startReconnect < 5000) {
           delay(200);
@@ -250,7 +247,7 @@ void TaskNetworkAndCloud(void *pvParameters) {
       }
     }
 
-    // 1. Background Supabase Cloud Upload (Every 5 seconds in Station mode)
+    // 1. Background Supabase Cloud Upload
     if (!snap.isAP && (millis() - lastCloudUpload >= CLOUD_UPLOAD_INTERVAL_MS)) {
       lastCloudUpload = millis();
       supabase.logSerialAndSupabase(
@@ -272,7 +269,6 @@ void TaskNetworkAndCloud(void *pvParameters) {
               break;
             }
 
-            // CORS-enabled JSON endpoint for index.html
             if (requestLine.indexOf("GET /api/telemetry") >= 0) {
               client.println("HTTP/1.1 200 OK");
               client.println("Content-Type: application/json");
@@ -301,7 +297,6 @@ void TaskNetworkAndCloud(void *pvParameters) {
               client.println(jsonBuf);
               break;
             }
-            // Built-in Mobile Responsive Status Page
             else if (requestLine.indexOf("GET /") >= 0) {
               client.println("HTTP/1.1 200 OK\nContent-type:text/html\nConnection: close\n");
               client.println("<!DOCTYPE html><html><head><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><meta http-equiv=\"refresh\" content=\"1\">");
@@ -325,7 +320,7 @@ void TaskNetworkAndCloud(void *pvParameters) {
       client.stop();
     }
 
-    vTaskDelay(pdMS_TO_TICKS(10)); // Yield to network stack
+    vTaskDelay(pdMS_TO_TICKS(10));
   }
 }
 
@@ -333,7 +328,7 @@ void TaskNetworkAndCloud(void *pvParameters) {
 // MAIN SETUP (Initializes Hardware, Wi-Fi & Dispatches FreeRTOS Tasks)
 // ==============================================================================
 void setup() {
-  WRITE_PERI_REG(RTC_CNTL_BROWN_OUT_REG, 0); // Disable brownout reset for pack stability
+  WRITE_PERI_REG(RTC_CNTL_BROWN_OUT_REG, 0);
   Serial.begin(115200);
   Serial.println("[BOOT] Serial OK");
 
@@ -341,16 +336,19 @@ void setup() {
   xTelemetryMutex = xSemaphoreCreateMutex();
   Serial.println("[BOOT] Mutex created");
 
-  // Initialize LCD
+  // Initialize LCD & Custom Boot Screen
   Serial.println("[BOOT] Initializing LCD...");
   lcd.init();
   Serial.println("[BOOT] LCD init done");
   lcd.backlight();
-  lcd.setCursor(0, 0); lcd.print("     VOLTRABLOOM    ");
-  lcd.setCursor(0, 1); lcd.print(" FreeRTOS Dual-Core ");
-  lcd.setCursor(0, 2); lcd.print("  Firmware v3.0     ");
-  lcd.setCursor(0, 3); lcd.print("  Starting Tasks... ");
-  delay(2000);
+  
+  // Tampilan Awal Baru (Centered)
+  lcd.setCursor(0, 0); lcd.print("                    ");
+  lcd.setCursor(0, 1); lcd.print("      HELLO         ");
+  lcd.setCursor(0, 2); lcd.print("      I AM          ");
+  lcd.setCursor(0, 3); lcd.print("  VOLTRABLOOM :)    ");
+  
+  delay(2500);
   lcd.clear();
 
   // Reset moving average buffers
@@ -409,8 +407,6 @@ void setup() {
   // ==============================================================================
   // DISPATCH FREERTOS TASKS TO DEDICATED CPU CORES
   // ==============================================================================
-  
-  // Task 1: Sensor Sampling & SoC Math -> Pinned to CORE 1 (Priority 2)
   xTaskCreatePinnedToCore(
     TaskSensorAcquisition,
     "TaskSensor",
@@ -418,10 +414,9 @@ void setup() {
     NULL,
     2,
     NULL,
-    1 // Pin to Core 1
+    1
   );
 
-  // Task 2: Wi-Fi REST Server & Supabase Cloud -> Pinned to CORE 0 (Priority 1)
   xTaskCreatePinnedToCore(
     TaskNetworkAndCloud,
     "TaskNetwork",
@@ -429,13 +424,12 @@ void setup() {
     NULL,
     1,
     NULL,
-    0 // Pin to Core 0
+    0
   );
 
   Serial.println("[FreeRTOS] Tasks dispatched to Core 0 (Network) and Core 1 (Sensors)");
 }
 
-// Arduino main loop is left idle as execution is handled entirely by FreeRTOS tasks
 void loop() {
   vTaskDelay(pdMS_TO_TICKS(1000));
 }

@@ -243,17 +243,18 @@
             currentPathLength = currentPathCumulative[currentPathCumulative.length - 1] || 1;
         }
 
-        function pointOnPath(t) {
+        const _pathTempVec = new THREE.Vector3();
+        function pointOnPathInto(t, out) {
             const target = t * currentPathLength;
             for (let i = 1; i < currentPathCumulative.length; i++) {
                 if (target <= currentPathCumulative[i]) {
                     const segStart = currentPathCumulative[i - 1];
                     const segLen = currentPathCumulative[i] - segStart;
                     const localT = segLen > 0 ? (target - segStart) / segLen : 0;
-                    return new THREE.Vector3().lerpVectors(currentPathPts[i - 1], currentPathPts[i], localT);
+                    return out.lerpVectors(currentPathPts[i - 1], currentPathPts[i], localT);
                 }
             }
-            return currentPathPts[currentPathPts.length - 1].clone();
+            return out.copy(currentPathPts[currentPathPts.length - 1]);
         }
 
         // --- Boot: wait for THREE, OrbitControls, and GLTFLoader (r128) ---
@@ -585,10 +586,14 @@
             requestAnimationFrame(animateCamera);
         }
 
+        let _resizeTimer;
         function onWindowResize() {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
+            clearTimeout(_resizeTimer);
+            _resizeTimer = setTimeout(() => {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            }, 150);
         }
 
         function animate() {
@@ -600,7 +605,7 @@
 
             if (currentPulse && currentWireGroup && currentWireGroup.visible) {
                 const t = (Date.now() % currentFlowPeriodMs) / currentFlowPeriodMs;
-                currentPulse.position.copy(pointOnPath(t));
+                currentPulse.position.copy(pointOnPathInto(t, _pathTempVec));
             }
 
             controls.update();

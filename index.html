@@ -53,7 +53,7 @@ body{font-family:'Inter',sans-serif;background:#FAF6EE;color:#261E14;overflow-x:
 .content-layer{position:relative;z-index:10;pointer-events:none}
 .content-layer *{pointer-events:none}
 .interactive-el{pointer-events:auto !important}
-.step-block{min-height:100vh;display:flex;align-items:center;opacity:0;transform:translateY(40px);transition:opacity .9s cubic-bezier(.22,1,.36,1),transform .9s cubic-bezier(.22,1,.36,1)}
+.step-block{min-height:100vh;display:flex;align-items:center;opacity:0;transform:translateY(40px);transition:opacity .9s cubic-bezier(.22,1,.36,1),transform .9s cubic-bezier(.22,1,.36,1);content-visibility:auto;contain-intrinsic-size:0 100vh}
 .step-block.visible{opacity:1;transform:translateY(0)}
 .telemetry-val{font-variant-numeric:tabular-nums}
 @keyframes pulse-glow{0%,100%{box-shadow:0 0 6px rgba(77,124,15,.3)}50%{box-shadow:0 0 16px rgba(77,124,15,.7)}}
@@ -268,16 +268,16 @@ body{font-family:'Inter',sans-serif;background:#FAF6EE;color:#261E14;overflow-x:
       </div>
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         <div class="gallery-item glass-card rounded-2xl overflow-hidden shadow-lg border border-black/5">
-          <img src="media/photos/team_1.jpg" class="w-full h-64 object-cover object-center" alt="Team Photo 1">
+          <img src="media/photos/team_1.jpg" class="w-full h-64 object-cover object-center" alt="Team Photo 1" loading="lazy">
         </div>
         <div class="gallery-item glass-card rounded-2xl overflow-hidden shadow-lg border border-black/5">
-          <img src="media/photos/team_2.jpg" class="w-full h-64 object-cover object-center" alt="Team Photo 2">
+          <img src="media/photos/team_2.jpg" class="w-full h-64 object-cover object-center" alt="Team Photo 2" loading="lazy">
         </div>
         <div class="gallery-item glass-card rounded-2xl overflow-hidden shadow-lg border border-black/5">
-          <img src="media/photos/team_3.jpg" class="w-full h-64 object-cover object-center" alt="Team Photo 3">
+          <img src="media/photos/team_3.jpg" class="w-full h-64 object-cover object-center" alt="Team Photo 3" loading="lazy">
         </div>
         <div class="gallery-item glass-card rounded-2xl overflow-hidden shadow-lg border border-black/5">
-          <img src="media/photos/team_4.jpg" class="w-full h-64 object-cover object-center" alt="Team Photo 4">
+          <img src="media/photos/team_4.jpg" class="w-full h-64 object-cover object-center" alt="Team Photo 4" loading="lazy">
         </div>
       </div>
     </div>
@@ -511,9 +511,26 @@ function initIcons(){
 initIcons();
 
 // --- 1. THREE.JS 3D ENVIRONMENT INITIALIZATION ---
+const _el = {};
 window.addEventListener('DOMContentLoaded', function(){
   const canvas = document.getElementById('c3d');
   if(!canvas) return;
+
+  // Cache static DOM refs (avoid repeated getElementById in telemetry loop)
+  Object.assign(_el, {
+    hudSolar: document.getElementById('hud-solar'),
+    hudWind: document.getElementById('hud-wind'),
+    hudSoil: document.getElementById('hud-soil'),
+    hudBattery: document.getElementById('hud-battery'),
+    hudBar: document.getElementById('hud-battery-bar'),
+    hudOut: document.getElementById('hud-out-v'),
+    mSolar: document.getElementById('modal-stat-solar'),
+    mWind: document.getElementById('modal-stat-wind'),
+    mSoil: document.getElementById('modal-stat-soil'),
+    mOutput: document.getElementById('modal-stat-output'),
+    mCurrentIn: document.getElementById('modal-stat-current-in'),
+    mCurrentOut: document.getElementById('modal-stat-current-out')
+  });
 
   const renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -664,9 +681,16 @@ window.addEventListener('DOMContentLoaded', function(){
   stepBlocks.forEach(function(b){ stepObs.observe(b); });
 
   // Animation Loop with Real-Time Data Binding
+  let _canvasVisible = true;
+  const _canvasObs = new IntersectionObserver(function(entries){
+    _canvasVisible = entries[0].isIntersecting;
+  }, { threshold: 0 });
+  _canvasObs.observe(canvas);
+
   function animate(){
     requestAnimationFrame(animate);
     if(!camera || !scene || !controls) return;
+    if(!_canvasVisible || _modalAnalyticsOpen) return;
 
     controls.update();
 
@@ -677,10 +701,14 @@ window.addEventListener('DOMContentLoaded', function(){
   }
   animate();
 
+  let _resizeTimer;
   window.addEventListener('resize', function(){
-    camera.aspect = window.innerWidth / window.innerHeight;
-    camera.updateProjectionMatrix();
-    renderer.setSize(window.innerWidth, window.innerHeight);
+    clearTimeout(_resizeTimer);
+    _resizeTimer = setTimeout(function(){
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    }, 150);
   });
 
   // Start Real-Time Telemetry Engine
@@ -807,37 +835,23 @@ async function fetchSupabaseLatest(){
 // Apply telemetry values to all UI targets
 function applyTelemetryUpdate(){
   // Update HUD
-  const hudSolar = document.getElementById('hud-solar');
-  const hudWind = document.getElementById('hud-wind');
-  const hudSoil = document.getElementById('hud-soil');
-  const hudBattery = document.getElementById('hud-battery');
-  const hudBar = document.getElementById('hud-battery-bar');
-  const hudOut = document.getElementById('hud-out-v');
-
-  if(hudSolar) hudSolar.textContent = Telemetry.solar_v.toFixed(2) + ' V';
-  if(hudWind) hudWind.textContent = Telemetry.wind_v.toFixed(2) + ' V';
-  if(hudSoil) hudSoil.textContent = Telemetry.soil_v.toFixed(2) + ' V';
-  if(hudBattery) hudBattery.textContent = Math.round(Telemetry.battery_soc) + '% (' + Telemetry.battery_ah.toFixed(2) + ' Ah)';
-  if(hudBar){
-    hudBar.style.width = Telemetry.battery_soc + '%';
-    hudBar.style.background = Telemetry.battery_soc > 60 ? '#4D7C0F' : (Telemetry.battery_soc > 30 ? '#E2A03F' : '#DC2626');
+  if(_el.hudSolar) _el.hudSolar.textContent = Telemetry.solar_v.toFixed(2) + ' V';
+  if(_el.hudWind) _el.hudWind.textContent = Telemetry.wind_v.toFixed(2) + ' V';
+  if(_el.hudSoil) _el.hudSoil.textContent = Telemetry.soil_v.toFixed(2) + ' V';
+  if(_el.hudBattery) _el.hudBattery.textContent = Math.round(Telemetry.battery_soc) + '% (' + Telemetry.battery_ah.toFixed(2) + ' Ah)';
+  if(_el.hudBar){
+    _el.hudBar.style.width = Telemetry.battery_soc + '%';
+    _el.hudBar.style.background = Telemetry.battery_soc > 60 ? '#4D7C0F' : (Telemetry.battery_soc > 30 ? '#E2A03F' : '#DC2626');
   }
-  if(hudOut) hudOut.textContent = Telemetry.output_v.toFixed(2) + ' V';
+  if(_el.hudOut) _el.hudOut.textContent = Telemetry.output_v.toFixed(2) + ' V';
 
   // Update Modal Quick Stats
-  const mSolar = document.getElementById('modal-stat-solar');
-  const mWind = document.getElementById('modal-stat-wind');
-  const mSoil = document.getElementById('modal-stat-soil');
-  const mOutput = document.getElementById('modal-stat-output');
-  const mCurrentIn = document.getElementById('modal-stat-current-in');
-  const mCurrentOut = document.getElementById('modal-stat-current-out');
-
-  if(mSolar) mSolar.textContent = Telemetry.solar_v.toFixed(2) + ' V';
-  if(mWind) mWind.textContent = Telemetry.wind_v.toFixed(2) + ' V';
-  if(mSoil) mSoil.textContent = Telemetry.soil_v.toFixed(2) + ' V';
-  if(mOutput) mOutput.textContent = Telemetry.output_v.toFixed(2) + ' V';
-  if(mCurrentIn) mCurrentIn.textContent = Telemetry.current_in_a.toFixed(2) + ' A';
-  if(mCurrentOut) mCurrentOut.textContent = Telemetry.current_out_a.toFixed(2) + ' A';
+  if(_el.mSolar) _el.mSolar.textContent = Telemetry.solar_v.toFixed(2) + ' V';
+  if(_el.mWind) _el.mWind.textContent = Telemetry.wind_v.toFixed(2) + ' V';
+  if(_el.mSoil) _el.mSoil.textContent = Telemetry.soil_v.toFixed(2) + ' V';
+  if(_el.mOutput) _el.mOutput.textContent = Telemetry.output_v.toFixed(2) + ' V';
+  if(_el.mCurrentIn) _el.mCurrentIn.textContent = Telemetry.current_in_a.toFixed(2) + ' A';
+  if(_el.mCurrentOut) _el.mCurrentOut.textContent = Telemetry.current_out_a.toFixed(2) + ' A';
 
   // Push to Chart.js buffers
   const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
@@ -861,8 +875,10 @@ function applyTelemetryUpdate(){
     ChartData.currentOut.shift();
   }
 
-  if(harvestChart) harvestChart.update('none');
-  if(batteryChart) batteryChart.update('none');
+  if(!_modalAnalyticsOpen){
+    if(harvestChart) harvestChart.update('none');
+    if(batteryChart) batteryChart.update('none');
+  }
 }
 
 // --- 3. CHART.JS REAL-TIME VISUALIZATION INITIALIZATION ---
@@ -985,10 +1001,12 @@ function initAnalyticsCharts(){
 }
 
 // --- 4. MODAL CONTROLS & HYBRID SWITCHER ---
+let _modalAnalyticsOpen = false;
 function toggleAnalyticsModal(){
   const m = document.getElementById('modal-analytics');
   if(m){
     m.classList.toggle('hidden');
+    _modalAnalyticsOpen = !m.classList.contains('hidden');
     if(!m.classList.contains('hidden')){
       if(harvestChart) harvestChart.resize();
       if(batteryChart) batteryChart.resize();
