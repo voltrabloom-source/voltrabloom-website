@@ -8,14 +8,14 @@
 
 <!-- External Frameworks & Libraries -->
 <script src="https://cdn.tailwindcss.com"></script>
-<script src="https://unpkg.com/lucide@latest"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/dist/umd/supabase.min.js"></script>
+<script src="https://unpkg.com/lucide@latest" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/dist/umd/supabase.min.js" defer></script>
 
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
@@ -571,13 +571,12 @@ window.addEventListener('DOMContentLoaded', function(){
   fillLight.position.set(-8, 5, -5);
   scene.add(fillLight);
 
-  // Materials
-  const glassMat = new THREE.MeshPhysicalMaterial({
-    color: 0xffffff, metalness: 0, roughness: 0.1, transmission: 0.9,
-    clearcoat: 1.0, clearcoatRoughness: 0.1, ior: 1.5, transparent: true,
-    side: THREE.DoubleSide, thickness: 0.5
+  // Materials (StandardMaterial + opacity — transmission/clearcoat are ~8x slower)
+  const glassMat = new THREE.MeshStandardMaterial({
+    color: 0xF8F4ED, metalness: 0, roughness: 0.1, transparent: true,
+    opacity: 0.22, side: THREE.DoubleSide
   });
-  const bodyMat = new THREE.MeshPhysicalMaterial({ color: 0xD8D0C4, metalness: 0.05, roughness: 0.35, clearcoat: 0.3 });
+  const bodyMat = new THREE.MeshStandardMaterial({ color: 0xD8D0C4, metalness: 0.05, roughness: 0.35 });
   const darkMat = new THREE.MeshStandardMaterial({ color: 0x3A3428, metalness: 0.1, roughness: 0.6 });
   const coreMat = new THREE.MeshStandardMaterial({ color: 0x4D7C0F, emissive: 0x4D7C0F, emissiveIntensity: 0.4, metalness: 0.2, roughness: 0.4 });
   const accentMat = new THREE.MeshStandardMaterial({ color: 0xE2A03F, metalness: 0.3, roughness: 0.4 });

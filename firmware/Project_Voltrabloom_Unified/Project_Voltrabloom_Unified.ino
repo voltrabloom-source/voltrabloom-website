@@ -103,9 +103,14 @@ void TaskSensorAcquisition(void *pvParameters) {
     // Total power
     float localPowerW = (localSolarV * localArusIn) + (localWindV * WIND_CURRENT_ESTIMATE_A);
 
-    // Coulomb Counting battery integration
+    // Coulomb Counting battery integration.
+    // Wall-clock dt stays accurate despite 10 ms loop jitter, but stalls (> 1 s)
+    // are clamped back to the nominal 10 ms period so a blocked loop cannot inject
+    // a large charge/discharge spike into the battery SoC estimate.
     unsigned long now = millis();
-    float dtHours = (now - lastTimeMilli) / 3600000.0;
+    unsigned long dtMs = now - lastTimeMilli;
+    if (dtMs > 1000) dtMs = 10;
+    float dtHours = dtMs / 3600000.0f;
     lastTimeMilli = now;
 
     float currentIn_mA = localArusIn * 1000.0;
@@ -170,6 +175,8 @@ void TaskNetworkAndCloud(void *pvParameters) {
 
   unsigned long lastCloudUpload = 0;
   unsigned long lastWifiCheck = millis();
+  bool wifiReconnecting = false;         // non-blocking reconnect state
+  unsigned long wifiReconnectStart = 0;  // when the reconnect attempt began
 
   for (;;) {
     SystemTelemetry snap = {0, 0, 0, 0, 0, 0, 1.3, 50.0, 0.0, false, "192.168.4.1"};
@@ -181,22 +188,26 @@ void TaskNetworkAndCloud(void *pvParameters) {
       continue;
     }
 
-    // WiFi reconnection check
+    // WiFi reconnection check (non-blocking state machine)
     if (millis() - lastWifiCheck >= WIFI_RECONNECT_INTERVAL_MS) {
       lastWifiCheck = millis();
-      if (WiFi.status() != WL_CONNECTED && !snap.isAP) {
+      if (!wifiReconnecting && WiFi.status() != WL_CONNECTED && !snap.isAP) {
         Serial.println("[WiFi] Connection lost, attempting reconnect...");
         WiFi.disconnect();
         WiFi.begin(ST_SSID, ST_PASSWORD);
-        unsigned long startReconnect = millis();
-        while (WiFi.status() != WL_CONNECTED && millis() - startReconnect < 5000) {
-          delay(200);
-        }
-        if (WiFi.status() == WL_CONNECTED) {
-          Serial.println("[WiFi] Reconnected successfully");
-        } else {
-          Serial.println("[WiFi] Reconnect failed, will retry later");
-        }
+        wifiReconnecting = true;
+        wifiReconnectStart = millis();
+      }
+    }
+
+    // Non-blocking progress check (yields via vTaskDelay below instead of delay(200))
+    if (wifiReconnecting) {
+      if (WiFi.status() == WL_CONNECTED) {
+        Serial.println("[WiFi] Reconnected successfully");
+        wifiReconnecting = false;
+      } else if (millis() - wifiReconnectStart >= 5000) {
+        Serial.println("[WiFi] Reconnect failed, will retry later");
+        wifiReconnecting = false;
       }
     }
 

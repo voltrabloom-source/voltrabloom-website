@@ -102,6 +102,11 @@ public:
         rIdx = 0;
         tSol = tWnd = tSli = tOut = tAIn = tAOt = 0;
 
+        // Free any previous buffers first so re-calling begin() does not leak heap
+        delete[] bufSol;  delete[] bufWnd;  delete[] bufSli;
+        delete[] bufOut;  delete[] bufAIn;  delete[] bufAOt;
+        bufSol = bufWnd = bufSli = bufOut = bufAIn = bufAOt = nullptr;
+
         bufSol = new int[window];
         bufWnd = new int[window];
         bufSli = new int[window];
