@@ -4,6 +4,7 @@
 #include "soc/soc.h"
 #include "soc/rtc_cntl_reg.h"
 #include "SupabaseLogger.h"
+#include "SensorReader.h"
 
 LiquidCrystal_I2C lcd(0x27, 20, 4);
 WiFiServer server(80);
@@ -20,15 +21,10 @@ const char* SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOi
 
 SupabaseLogger supabase;
 
-const int pinSolar = 32, pinWind = 35, pinSoil = 34, pinOutput = 33, pinAmpsIn = 39, pinAmpsOut = 36;
+SensorReader sensor;
 
 // AKURAT: Batas kapasitas diatur tepat ke 2.6 Ah (2600 mAh) sesuai baterai seri Anda
-const float VREF = 3.3, MAX_ADC = 4095.0, BATT_CAPACITY_AH = 2.6; 
-
-const int numReadings = 10;
-int readSol[numReadings], readWnd[numReadings], readSli[numReadings], readOut[numReadings], readAIn[numReadings], readAOt[numReadings];
-int rIdx = 0;
-long tSol = 0, tWnd = 0, tSli = 0, tOut = 0, tAIn = 0, tAOt = 0;
+const float BATT_CAPACITY_AH = 2.6;
 
 float vDisplaySolar, vDisplayWind, vDisplaySoil, vDisplayOutput, arusMasukA, arusKeluarA;
 float bateraiIsiAh = 1.3, persenBaterai = 50.0; // Start at 50% (midpoint assumption)
@@ -36,7 +32,7 @@ unsigned long waktuLamaMilli = 0;
 
 void printFormat(float value) {
   char buffer[10]; // Aman: Ukuran buffer 10 digit, anti-stuck memori ESP32
-  sprintf(buffer, "%05.2f", value); 
+  sprintf(buffer, "%05.2f", value);
   lcd.print(buffer);
 }
 
@@ -45,18 +41,14 @@ void setup() {
   Serial.begin(115200);
   lcd.init();
   lcd.backlight();
-  
+
   lcd.setCursor(0, 0); lcd.print("       Hello        ");
   lcd.setCursor(0, 1); lcd.print("       I am         ");
   lcd.setCursor(0, 2); lcd.print("  VOLTRABLOOM :)    ");
   delay(2000);
   lcd.clear();
 
-  // Inisialisasi awal seluruh memori filter dengan nilai 0
-  for (int i = 0; i < numReadings; i++) {
-    readSol[i] = 0; readWnd[i] = 0; readSli[i] = 0;
-    readOut[i] = 0; readAIn[i] = 0; readAOt[i] = 0;
-  }
+  sensor.begin();
 
   lcd.setCursor(0, 0); lcd.print("Connecting WiFi ");
   WiFi.begin(ssid, password);
@@ -74,14 +66,13 @@ void setup() {
     delay(2000);
     lcd.clear();
   }
-  
+
   server.begin();
   lcd.clear();
   lcd.setCursor(0, 0); lcd.print("WIFI CONNECTED!");
   lcd.setCursor(0, 2); lcd.print("Buka Web lewat IP:");
-  lcd.setCursor(0, 3); lcd.print(WiFi.localIP()); 
-  
-  // Inisialisasi Supabase REST Client
+  lcd.setCursor(0, 3); lcd.print(WiFi.localIP());
+
   supabase.init(SUPABASE_URL, SUPABASE_ANON_KEY, "telemetry");
 
   delay(3000);
@@ -90,41 +81,13 @@ void setup() {
 }
 
 void loop() {
-  // --- KONTROL FILTER JALUR MOVING AVERAGE ---
-  tSol -= readSol[rIdx]; tWnd -= readWnd[rIdx]; tSli -= readSli[rIdx];
-  tOut -= readOut[rIdx]; tAIn -= readAIn[rIdx]; tAOt -= readAOt[rIdx];
-
-  readSol[rIdx] = analogRead(pinSolar);  readWnd[rIdx] = analogRead(pinWind);
-  readSli[rIdx] = analogRead(pinSoil);   readOut[rIdx] = analogRead(pinOutput);
-  readAIn[rIdx] = analogRead(pinAmpsIn); readAOt[rIdx] = analogRead(pinAmpsOut);
-
-  tSol += readSol[rIdx]; tWnd += readWnd[rIdx]; tSli += readSli[rIdx];
-  tOut += readOut[rIdx]; tAIn += readAIn[rIdx]; tAOt += readAOt[rIdx];
-
-  if (++rIdx >= numReadings) rIdx = 0;
-
-  // --- MENGHITUNG RATA-RATA TEGANGAN PIN ADC ---
-  // FIX: Added (float) casts to prevent integer division truncation.
-  // Without the cast, (tSol / numReadings) performs integer division (long/int),
-  // truncating the fractional component before float multiplication — causing inaccurate readings.
-  float vPinSolar = (((float)tSol / numReadings) / MAX_ADC) * VREF;
-  float vPinWind  = (((float)tWnd / numReadings) / MAX_ADC) * VREF;
-  float vPinSoil  = (((float)tSli / numReadings) / MAX_ADC) * VREF;
-  float vPinOut   = (((float)tOut / numReadings) / MAX_ADC) * VREF;
-
-  // --- KALIBRASI NILAI VOLTASE FISIK NYATA ---
-  vDisplaySolar  = (vPinSolar * (12.0 / 3.3) * 1.1) * 2.0;
-  vDisplayWind   = vPinWind * (5.0 / 3.3);
-  vDisplaySoil   = vPinSoil;
-  vDisplayOutput = vPinOut * (10.0 / 3.3) * 1.1;
-
-  // --- KALIBRASI DATA SENSOR ARUS ---
-  // FIX: Also apply float cast to current sensor calculations
-  arusMasukA  = ((((float)tAIn / numReadings) / MAX_ADC) * VREF - 1.65) / 0.185;
-  arusKeluarA = ((((float)tAOt / numReadings) / MAX_ADC) * VREF - 1.65) / 0.185;
-  
-  if (arusMasukA < 0.05) arusMasukA = 0.0;
-  if (arusKeluarA < 0.05) arusKeluarA = 0.0;
+  sensor.update();
+  vDisplaySolar  = sensor.getSolarV();
+  vDisplayWind   = sensor.getWindV();
+  vDisplaySoil   = sensor.getSoilV();
+  vDisplayOutput = sensor.getOutputV();
+  arusMasukA     = sensor.getAmpsInA();
+  arusKeluarA    = sensor.getAmpsOutA();
 
   unsigned long wktSkrg = millis();
   float JedaJam = (wktSkrg - waktuLamaMilli) / 3600000.0;
@@ -134,12 +97,12 @@ void loop() {
 
   if (arusMasuk_mA > 15.0 || arusKeluarA > 0.05) {
     bateraiIsiAh = bateraiIsiAh + (arusMasukA * JedaJam) - (arusKeluarA * JedaJam);
-    
+
     if (bateraiIsiAh > BATT_CAPACITY_AH) bateraiIsiAh = BATT_CAPACITY_AH;
     if (bateraiIsiAh < 0.0) bateraiIsiAh = 0.0;
-    
+
     persenBaterai = (bateraiIsiAh / BATT_CAPACITY_AH) * 100.0;
-    
+
     // Float charge tapering: current dropping but solar at full voltage → topped off
     if (arusMasuk_mA < 50.0 && vDisplaySolar > 12.0 && arusMasuk_mA > 15.0) {
        persenBaterai = 100.0;
@@ -153,23 +116,21 @@ void loop() {
   if (persenBaterai > 100.0) persenBaterai = 100.0;
   if (persenBaterai < 0.0)   persenBaterai = 0.0;
 
-  // --- LOGGING SERIAL MONITOR & STREAMING SUPABASE DATABASE (Interval 5 Detik) ---
+  // Serial + Supabase upload (5s interval)
   supabase.logSerialAndSupabase(
-    vDisplaySolar, vDisplayWind, vDisplaySoil, vDisplayOutput, 
-    arusMasukA, arusKeluarA, persenBaterai, bateraiIsiAh, 
+    vDisplaySolar, vDisplayWind, vDisplaySoil, vDisplayOutput,
+    arusMasukA, arusKeluarA, persenBaterai, bateraiIsiAh,
     5000 // Upload non-blocking setiap 5000 ms (5 detik)
   );
 
-  // --- VISUALISASI LAYAR LCD 20x4 SESUAI REQUEST ---
-  lcd.setCursor(0, 0); lcd.print("Solar : "); printFormat(vDisplaySolar); lcd.print(" V   "); 
+  // LCD 20x4 display
+  lcd.setCursor(0, 0); lcd.print("Solar : "); printFormat(vDisplaySolar); lcd.print(" V   ");
   lcd.setCursor(0, 1); lcd.print("Wind  : "); printFormat(vDisplayWind);  lcd.print(" V   ");
   lcd.setCursor(0, 2); lcd.print("Soil  : "); printFormat(vDisplaySoil);  lcd.print(" V   ");
-  
-  // Baris 4 menampilkan data tegangan Output sekaligus Indikator Baterai (B)
-  lcd.setCursor(0, 3); lcd.print("Out: "); printFormat(vDisplayOutput); lcd.print(" V "); 
+  lcd.setCursor(0, 3); lcd.print("Out: "); printFormat(vDisplayOutput); lcd.print(" V ");
   lcd.setCursor(13, 3); lcd.print("B:"); lcd.print((int)persenBaterai); lcd.print("%   ");
 
-  // --- SISTEM LAYANAN WEB SERVER INTERNET HTTP ---
+  // HTTP web server
   WiFiClient client = server.available();
   if (client) {
     String currentLine = "";

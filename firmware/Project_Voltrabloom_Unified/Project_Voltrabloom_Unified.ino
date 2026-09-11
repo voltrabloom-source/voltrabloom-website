@@ -1,30 +1,23 @@
 #include "ArduinoCompat.h"
 #include "SupabaseLogger.h"
+#include "SensorReader.h"
 
 /*
  * ==============================================================================
  * VOLTRABLOOM UNIFIED HYBRID FIRMWARE v3.0 (Dual-Core FreeRTOS Architecture)
  * Hybrid Energy Harvesting & Management System (HEMS)
- * 
+ *
  * Multi-Core Task Distribution:
  * - CORE 1 (High Priority Real-Time): ADC1 sensor acquisition (100 Hz), eFuse calibration,
  *   moving-average filtering, Coulomb Counting battery SoC, and I2C LCD refresh.
  * - CORE 0 (Network & IoT Cloud): Wi-Fi Station / SoftAP manager, REST JSON API (/api/telemetry),
  *   and non-blocking background HTTPS Supabase cloud database logging.
- * 
+ *
  * Hardware Safety:
  * - All analog sensors strictly allocated to ADC1 (GPIOs 32-39) to eliminate Wi-Fi ADC2 lockups.
  * - Thread-safe state synchronization via FreeRTOS Mutex Semaphores.
  * ==============================================================================
  */
-
-// --- HARDWARE PIN CONFIGURATION (ALL STRICTLY ADC1) ---
-const int pinSolar   = 32; // ADC1_CH4 (12 V Solar Panel Divider)
-const int pinWind    = 35; // ADC1_CH7 (5 V Wind Generator Divider)
-const int pinSoil    = 34; // ADC1_CH6 (Soil Microbial Fuel Cell)
-const int pinOutput  = 33; // ADC1_CH5 (10 V DC-DC Output Divider)
-const int pinAmpsIn  = 39; // ADC1_CH3 / VN (ACS712 Inflow Current)
-const int pinAmpsOut = 36; // ADC1_CH0 / VP (ACS712 Outflow Current)
 
 // --- NETWORK CONFIGURATION ---
 const char* ST_SSID     = "ESP32";            // Target router SSID (change to your local Wi-Fi)
@@ -42,21 +35,7 @@ WiFiServer server(80);
 SupabaseLogger supabase;
 
 // Electrical & Battery Constants
-const float VREF = 3.3;
-const float MAX_ADC = 4095.0;
 const float BATT_CAPACITY_AH = 2.6;
-
-// ACS712 Current Sensor Constants
-const float ACS712_ZERO_V   = 1.65;  // Zero-current output voltage (V)
-const float ACS712_SENSITIVITY = 0.185; // Sensitivity: 185 mV/A
-
-// Voltage Divider Calibration Factors
-const float SOLAR_DIVIDER_RATIO = 12.0 / 3.3;  // Solar panel 12 V divider
-const float SOLAR_CALIBRATION   = 1.1;         // Per-unit correction factor
-const float SOLAR_TWICE         = 2.0;         // Additional 2x gain stage
-const float WIND_DIVIDER_RATIO  = 5.0 / 3.3;   // Wind generator 5 V divider
-const float OUTPUT_DIVIDER_RATIO = 10.0 / 3.3; // DC-DC output 10 V divider
-const float OUTPUT_CALIBRATION  = 1.1;         // Per-unit correction factor
 
 // Coulomb Counting Thresholds
 const float CURRENT_DEADZONE_A     = 0.05;  // Minimum detectable current (A)
@@ -71,12 +50,8 @@ const unsigned long LCD_UPDATE_INTERVAL_MS   = 500;   // LCD refresh interval (2
 const unsigned long WIFI_TIMEOUT_MS          = 8000;  // WiFi connection timeout
 const unsigned long WIFI_RECONNECT_INTERVAL_MS = 30000; // WiFi reconnection check interval
 
-// Moving average filters (10-sample window)
-const int numReadings = 10;
-int readSol[numReadings], readWnd[numReadings], readSli[numReadings];
-int readOut[numReadings], readAIn[numReadings], readAOt[numReadings];
-int rIdx = 0;
-long tSol = 0, tWnd = 0, tSli = 0, tOut = 0, tAIn = 0, tAOt = 0;
+// Sensor reader (encapsulates 6-channel moving-average ADC1 filtering)
+SensorReader sensor;
 
 // Thread-Safe Shared Telemetry Structure
 struct SystemTelemetry {
@@ -115,42 +90,20 @@ void TaskSensorAcquisition(void *pvParameters) {
   unsigned long lastTimeMilli = millis();
 
   for (;;) {
-    // 1. Moving average filtering
-    tSol -= readSol[rIdx]; tWnd -= readWnd[rIdx]; tSli -= readSli[rIdx];
-    tOut -= readOut[rIdx]; tAIn -= readAIn[rIdx]; tAOt -= readAOt[rIdx];
+    // 1. Update 6-channel moving-average filter (reads ADC, computes calibrated values)
+    sensor.update();
 
-    readSol[rIdx] = analogRead(pinSolar);  readWnd[rIdx] = analogRead(pinWind);
-    readSli[rIdx] = analogRead(pinSoil);   readOut[rIdx] = analogRead(pinOutput);
-    readAIn[rIdx] = analogRead(pinAmpsIn); readAOt[rIdx] = analogRead(pinAmpsOut);
-
-    tSol += readSol[rIdx]; tWnd += readWnd[rIdx]; tSli += readSli[rIdx];
-    tOut += readOut[rIdx]; tAIn += readAIn[rIdx]; tAOt += readAOt[rIdx];
-
-    if (++rIdx >= numReadings) rIdx = 0;
-
-    // 2. High-precision float conversion
-    float vPinSolar = (((float)tSol / numReadings) / MAX_ADC) * VREF;
-    float vPinWind  = (((float)tWnd / numReadings) / MAX_ADC) * VREF;
-    float vPinSoil  = (((float)tSli / numReadings) / MAX_ADC) * VREF;
-    float vPinOut   = (((float)tOut / numReadings) / MAX_ADC) * VREF;
-
-    // 3. Calibrate physical values
-    float localSolarV  = (vPinSolar * SOLAR_DIVIDER_RATIO * SOLAR_CALIBRATION) * SOLAR_TWICE;
-    float localWindV   = vPinWind * WIND_DIVIDER_RATIO;
-    float localSoilV   = vPinSoil;
-    float localOutputV = vPinOut * OUTPUT_DIVIDER_RATIO * OUTPUT_CALIBRATION;
-
-    // Current Sensor ACS712 5A module
-    float localArusIn  = ((((float)tAIn / numReadings) / MAX_ADC) * VREF - ACS712_ZERO_V) / ACS712_SENSITIVITY;
-    float localArusOut = ((((float)tAOt / numReadings) / MAX_ADC) * VREF - ACS712_ZERO_V) / ACS712_SENSITIVITY;
-
-    if (localArusIn < CURRENT_DEADZONE_A)  localArusIn = 0.0;
-    if (localArusOut < CURRENT_DEADZONE_A) localArusOut = 0.0;
+    float localSolarV  = sensor.getSolarV();
+    float localWindV   = sensor.getWindV();
+    float localSoilV   = sensor.getSoilV();
+    float localOutputV = sensor.getOutputV();
+    float localArusIn  = sensor.getAmpsInA();
+    float localArusOut = sensor.getAmpsOutA();
 
     // Total power
     float localPowerW = (localSolarV * localArusIn) + (localWindV * WIND_CURRENT_ESTIMATE_A);
 
-    // 4. Coulomb Counting battery integration
+    // Coulomb Counting battery integration
     unsigned long now = millis();
     float dtHours = (now - lastTimeMilli) / 3600000.0;
     lastTimeMilli = now;
@@ -161,7 +114,7 @@ void TaskSensorAcquisition(void *pvParameters) {
 
     if (xSemaphoreTake(xTelemetryMutex, pdMS_TO_TICKS(10)) == pdTRUE) {
       currentBattAh = sharedTelemetry.battAh;
-      
+
       if (currentIn_mA > MIN_CHARGE_CURRENT_MA || localArusOut > CURRENT_DEADZONE_A) {
         currentBattAh = currentBattAh + (localArusIn * dtHours) - (localArusOut * dtHours);
 
@@ -195,7 +148,7 @@ void TaskSensorAcquisition(void *pvParameters) {
       xSemaphoreGive(xTelemetryMutex);
     }
 
-    // 5. Update 20x4 I2C LCD (2 Hz rate)
+    // Update 20x4 I2C LCD (2 Hz)
     if (now - lastLcdUpdate >= LCD_UPDATE_INTERVAL_MS) {
       lastLcdUpdate = now;
       lcd.setCursor(0, 0); lcd.print("Solar: "); printFormat(localSolarV); lcd.print(" V  ");
@@ -247,7 +200,7 @@ void TaskNetworkAndCloud(void *pvParameters) {
       }
     }
 
-    // 1. Background Supabase Cloud Upload
+    // Background Supabase Cloud Upload
     if (!snap.isAP && (millis() - lastCloudUpload >= CLOUD_UPLOAD_INTERVAL_MS)) {
       lastCloudUpload = millis();
       supabase.logSerialAndSupabase(
@@ -257,7 +210,7 @@ void TaskNetworkAndCloud(void *pvParameters) {
       );
     }
 
-    // 2. Handle HTTP Client requests on Port 80
+    // Handle HTTP Client requests on Port 80
     WiFiClient client = server.available();
     if (client) {
       String requestLine = "";
@@ -332,32 +285,23 @@ void setup() {
   Serial.begin(115200);
   Serial.println("[BOOT] Serial OK");
 
-  // Create Mutex Semaphore
   xTelemetryMutex = xSemaphoreCreateMutex();
-  Serial.println("[BOOT] Mutex created");
 
-  // Initialize LCD & Custom Boot Screen
   Serial.println("[BOOT] Initializing LCD...");
   lcd.init();
-  Serial.println("[BOOT] LCD init done");
   lcd.backlight();
-  
-  // Tampilan Awal Baru (Centered)
+
+  // Tampilan Awal (Centered)
   lcd.setCursor(0, 0); lcd.print("                    ");
   lcd.setCursor(0, 1); lcd.print("      HELLO         ");
   lcd.setCursor(0, 2); lcd.print("      I AM          ");
   lcd.setCursor(0, 3); lcd.print("  VOLTRABLOOM :)    ");
-  
+
   delay(2500);
   lcd.clear();
 
-  // Reset moving average buffers
-  for (int i = 0; i < numReadings; i++) {
-    readSol[i] = 0; readWnd[i] = 0; readSli[i] = 0;
-    readOut[i] = 0; readAIn[i] = 0; readAOt[i] = 0;
-  }
+  sensor.begin();
 
-  // Attempt Wi-Fi Station connection (8s timeout)
   Serial.println("[BOOT] Connecting WiFi...");
   lcd.setCursor(0, 0); lcd.print("Connecting Wi-Fi");
   WiFi.mode(WIFI_STA);
@@ -393,7 +337,6 @@ void setup() {
     lcd.setCursor(0, 2); lcd.print("IP: " + currentIp);
   }
 
-  // Update initial shared state
   if (xSemaphoreTake(xTelemetryMutex, portMAX_DELAY) == pdTRUE) {
     sharedTelemetry.isAP = isAPMode;
     strncpy(sharedTelemetry.ipStr, currentIp.c_str(), sizeof(sharedTelemetry.ipStr) - 1);
@@ -404,9 +347,6 @@ void setup() {
   delay(2500);
   lcd.clear();
 
-  // ==============================================================================
-  // DISPATCH FREERTOS TASKS TO DEDICATED CPU CORES
-  // ==============================================================================
   xTaskCreatePinnedToCore(
     TaskSensorAcquisition,
     "TaskSensor",

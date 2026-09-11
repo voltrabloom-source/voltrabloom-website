@@ -11,27 +11,31 @@ private:
     String url;
     String anonKey;
     String tableName;
+    String endpoint;  // Pre-computed to avoid per-upload heap allocation
     unsigned long lastUploadTime;
 
 public:
-    SupabaseLogger() : url(""), anonKey(""), tableName("telemetry"), lastUploadTime(0) {}
+    SupabaseLogger() : url(""), anonKey(""), tableName("telemetry"), endpoint(""), lastUploadTime(0) {}
 
     // Initialize Supabase configuration credentials
     void init(const char* supabaseUrl, const char* supabaseAnonKey, const char* table = "telemetry") {
         url = String(supabaseUrl);
         anonKey = String(supabaseAnonKey);
         tableName = String(table);
-        
+
         // Remove trailing slash if provided in URL
         if (url.endsWith("/")) {
             url = url.substring(0, url.length() - 1);
         }
-        
+
+        // Pre-compute endpoint to avoid heap allocation on every upload
+        endpoint = url + "/rest/v1/" + tableName;
+
         Serial.println("[Supabase] Initialized logger targeting table: " + tableName);
     }
 
     // Direct function to send telemetry JSON payload to Supabase database
-    bool sendTelemetry(float vSolar, float vWind, float vSoil, float vOut, 
+    bool sendTelemetry(float vSolar, float vWind, float vSoil, float vOut,
                        float iIn, float iOut, float battPercent, float battAh) {
         if (WiFi.status() != WL_CONNECTED) {
             Serial.println("[Supabase] Upload skipped: WiFi not connected.");
@@ -47,7 +51,6 @@ public:
         client.setInsecure(); // Skip TLS certificate validation for ESP32 compatibility
 
         HTTPClient http;
-        String endpoint = url + "/rest/v1/" + tableName;
 
         if (!http.begin(client, endpoint)) {
             Serial.println("[Supabase] Connection failed to endpoint: " + endpoint);
@@ -57,7 +60,10 @@ public:
         // Build RESTful API headers for Supabase PostgREST endpoint
         http.addHeader("Content-Type", "application/json");
         http.addHeader("apikey", anonKey);
-        http.addHeader("Authorization", "Bearer " + anonKey);
+        // Use char[] for Authorization header to avoid String heap allocation per upload
+        char authHeader[256];
+        snprintf(authHeader, sizeof(authHeader), "Bearer %s", anonKey.c_str());
+        http.addHeader("Authorization", authHeader);
         http.addHeader("Prefer", "return=minimal");
         http.setTimeout(3000); // 3-second non-blocking timeout
 
@@ -91,8 +97,8 @@ public:
     }
 
     // Helper function to print telemetry to Serial Monitor and upload non-blockingly to Supabase
-    void logSerialAndSupabase(float vSolar, float vWind, float vSoil, float vOut, 
-                             float iIn, float iOut, float battPercent, float battAh, 
+    void logSerialAndSupabase(float vSolar, float vWind, float vSoil, float vOut,
+                             float iIn, float iOut, float battPercent, float battAh,
                              unsigned long intervalMs = 5000) {
         unsigned long currentMillis = millis();
 
@@ -110,11 +116,9 @@ public:
             sendTelemetry(vSolar, vWind, vSoil, vOut, iIn, iOut, battPercent, battAh);
         }
     }
-}; // End of class SupabaseLogger
+};
 
-// NOTE: Do NOT add an extern declaration here.
-// The SupabaseLogger instance ('supabase') is defined in the main .ino sketch file.
-// Adding an extern here would cause a linker conflict if this header is ever
-// included from multiple compilation units.
+// NOTE: The SupabaseLogger instance ('supabase') is defined in the main .ino sketch file.
+// Do NOT add an extern declaration here — it would cause linker conflicts.
 
 #endif // SUPABASE_LOGGER_H

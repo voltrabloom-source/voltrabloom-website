@@ -23,20 +23,20 @@ public:
         url = String(supabaseUrl);
         anonKey = String(supabaseAnonKey);
         tableName = String(table);
-        
+
         // Remove trailing slash if provided in URL
         if (url.endsWith("/")) {
             url = url.substring(0, url.length() - 1);
         }
-        
+
         // Pre-compute endpoint to avoid heap allocation on every upload
         endpoint = url + "/rest/v1/" + tableName;
-        
+
         Serial.println("[Supabase] Initialized cloud logger for table: " + tableName);
     }
 
     // Direct function to send telemetry JSON payload to Supabase database
-    bool sendTelemetry(float vSolar, float vWind, float vSoil, float vOut, 
+    bool sendTelemetry(float vSolar, float vWind, float vSoil, float vOut,
                        float iIn, float iOut, float battPercent, float battAh) {
         // Skip upload if not in station mode or not connected to internet
         if (WiFi.status() != WL_CONNECTED) {
@@ -97,8 +97,8 @@ public:
     }
 
     // Helper function to upload non-blockingly at a set interval
-    void logSerialAndSupabase(float vSolar, float vWind, float vSoil, float vOut, 
-                             float iIn, float iOut, float battPercent, float battAh, 
+    void logSerialAndSupabase(float vSolar, float vWind, float vSoil, float vOut,
+                             float iIn, float iOut, float battPercent, float battAh,
                              unsigned long intervalMs = 5000) {
         unsigned long currentMillis = millis();
 
