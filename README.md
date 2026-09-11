@@ -32,8 +32,7 @@ VOLTRA/
 │
 ├── 📐 3d_models/                           ← 3D CAD, STL, GLB & SVG Model Assets
 │   ├── Frantic_Kasi.glb / .stl / .svg      ← Optimized 3D model iterations
-│   ├── Frantic_Kasi_v1.glb / .stl / .svg   ← Original 3D models
-│   └── archives/                           ← Zip packages of 3D exports
+│   └── Frantic_Kasi_v1.glb / .stl / .svg   ← Original 3D models
 │
 ├── 📑 documents/                           ← Research & Engineering Documentation
 │   ├── papers/                             ← Scientific papers & research publications
@@ -152,7 +151,7 @@ npx vercel --prod
 
 **Production Checklist:**
 - [ ] Replace gallery image URLs if using expiring CDN auth tokens (now `gallery/` local)
-- [ ] Add `PAPER_VOLTRA.pdf` to project root if needed
+- [ ] Add `PAPER_VOLTRA.docx` (from `documents/papers/`) to project root if needed
 - [ ] Update `og:url` in `index.html` with actual domain
 - [ ] Update Live Data button to your Supabase dashboard URL
 

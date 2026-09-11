@@ -39,5 +39,8 @@ media/design_projects/*.ipv
 # firmware/**/secrets.h
 # .env
 
+# Deepwork session state - git-local, OpenCode-readable via .ignore negation
+.slim/deepwork/
+
 .vercel
 .env*

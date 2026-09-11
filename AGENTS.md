@@ -9,7 +9,7 @@ VoltraBloom — a hybrid energy harvesting system (solar + VAWT wind + Soil Micr
 ## Structure (the parts that matter)
 
 - `index.html` — main live 3D dashboard + telemetry (Chart.js + Three.js r128 + Supabase). Opens directly in a browser; no server needed. Requires internet on first load for CDNs.
-- `viewer_3d.html` — standalone Three.js GLB viewer. Loads `3d_models/3D_model _voltrabloom.glb` (note: space in filename). Language: `lang="id"` (Indonesian).
+- `viewer_3d.html` — standalone Three.js GLB viewer. Loads `3d_models/Frantic_Kasi_v1.glb`. Language: `lang="id"` (Indonesian).
 - `box_akrilik_designer.html` — Three.js GLB showcase + animated HEMS controls (loads `Frantic_Kasi_v1.glb`, sliders for turbine/current speed and model scale, toggles for components; dark UI `#0f172a`, uses Font Awesome). Despite the name it is no longer a procedural parametric CAD designer.
 - `main.js` + `style.css` — **production-optimized build** (ES module `import * as THREE from 'three'`, hand-written CSS replacing Tailwind CDN). **No committed HTML file loads `main.js`** — there is no import map in any tracked HTML. `main.js` cannot be opened via `file://`; requires an HTTP server (`python3 -m http.server 8080` or `npx serve .`).
 - `firmware/Project_Voltrabloom_Unified/` — **the recommended firmware**: FreeRTOS dual-core, 100 Hz ADC1 sensing on Core 1, WiFi + REST + Supabase on Core 0. Edit this one by default.
@@ -17,7 +17,7 @@ VoltraBloom — a hybrid energy harvesting system (solar + VAWT wind + Soil Micr
 - `firmware/Project_Voltrabloom_Supabase/` — cloud-only logger variant. **Bug:** its `.ino` is named `Project_Voltrabloom.ino` (not `Project_Voltrabloom_Supabase.ino`), so folder and sketch names don't match — Arduino IDE may refuse to compile it.
 - `firmware/tester_pertama/` — sensor calibration sketch, no WiFi.
 - `documents/schemas/supabase_telemetry_schema.sql` — run this in Supabase SQL Editor to provision `telemetry`, `telemetry_hourly`, the `aggregate_telemetry_hourly()` function, and the `cleanup_old_raw_telemetry(days)` retention function.
-- `3d_models/` — `.glb` / `.stl` / `.svg` of the physical hardware. `Frantic_Kasi_v1.glb` is the original; `Frantic_Kasi.glb` is optimized. `3D_model _voltrabloom.glb` (with space) is loaded by `viewer_3d.html`.
+- `3d_models/` — `.glb` / `.stl` / `.svg` of the physical hardware. `Frantic_Kasi_v1.glb` is the original; `Frantic_Kasi.glb` is optimized. `viewer_3d.html` loads `Frantic_Kasi_v1.glb`.
 - `media/` — logos, posters, photos, screenshots. Non-source — do not run formatters.
 - `gallery/` — optimized gallery assets (cad_model, fabrication, wiring).
 - `tools/Arduino IDE/` — a vendored **portable** Arduino IDE binary. Do not delete.
@@ -52,8 +52,8 @@ These are the rules in `.agents/rules/esp32_iot_guidelines.md` and `.agents/rule
 
 ## Three.js model assets
 
-- `3d_models/Frantic_Kasi_v1.glb` is the original iteration; `Frantic_Kasi.glb` is the optimized revision. `index.html` loads `Frantic_Kasi_v1.glb` via `GLTFLoader` at `index.html:574`, and `box_akrilik_designer.html` also loads it (`box_akrilik_designer.html:350`).
-- `3d_models/3D_model _voltrabloom.glb` (note the space in the filename) is loaded by `viewer_3d.html:105`.
+- `3d_models/Frantic_Kasi_v1.glb` is the original iteration; `Frantic_Kasi.glb` is the optimized revision. `index.html` loads `Frantic_Kasi.glb` via `GLTFLoader`, and `box_akrilik_designer.html` also loads it.
+- `3d_models/Frantic_Kasi_v1.glb` is loaded by `viewer_3d.html:105`.
 - `viewer_3d.html` is **not** procedural — it loads and displays a GLB file. `main.js` is the one that builds the enclosure procedurally with primitives (`BoxGeometry`/`CylinderGeometry`).
 - HTML files are opened from repo root, so keep relative paths as `3d_models/...`.
 
@@ -79,7 +79,7 @@ These are the rules in `.agents/rules/esp32_iot_guidelines.md` and `.agents/rule
 - `desktop.ini` is a Windows folder-setting file, leave it.
 - `.clangd` files exist at the repo root and in `firmware/Project_Voltrabloom_Unified/` and `firmware/Project_Voltrabloom_Supabase/`. They enable IDE features via `ArduinoCompat.h` stubs. Don't delete them.
 - The repo mixes Indonesian and English (filenames like `tester_pertama`, `keperluan web voltra`, `box_akrilik_designer`). Don't rename without asking.
-- The two `Frantic_Kasi*` model files are iterations, not duplicates — the `_v1` is the original, the unversioned one is the optimized revision. `3D_model _voltrabloom.glb` is a separate model (used by `viewer_3d.html`).
+- The two `Frantic_Kasi*` model files are iterations, not duplicates — the `_v1` is the original, the unversioned one is the optimized revision. The former `3D_model _voltrabloom.glb` was a byte-for-byte duplicate of `Frantic_Kasi_v1.glb` and was removed; `viewer_3d.html` now loads `Frantic_Kasi_v1.glb`.
 - `firmware/Project_Voltrabloom_Supabase/Project_Voltrabloom.ino` — sketch name does not match folder name. This is a known issue; don't silently rename it without confirming intent.
 - `README.md` references a `logo/` directory and "Three.js 0.167" production build — neither is committed. The `logo/` directory does not exist; the production HTML that would load `main.js` is not tracked.
 
