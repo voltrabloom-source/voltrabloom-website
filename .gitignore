@@ -44,3 +44,7 @@ media/design_projects/*.ipv
 
 .vercel
 .env*
+.agents
+.codegraph
+.slim
+.ignore
